@@ -14,31 +14,42 @@ export type MessengerRequestCallback = (
 
 export type MessengerResponseCallback = (accessRsp: MainAccessResponse) => void;
 
+export type WinId = number;
+
 export type MessageFromWorkerToSandbox =
   | [WorkerMessageType.MainDataRequestFromWorker]
-  | [WorkerMessageType.InitializedWorkerScript, number, string]
-  | [WorkerMessageType.InitializeNextWorkerScript]
-  | [WorkerMessageType.ForwardWorkerAccessResponse, MainAccessResponse]
-  | [WorkerMessageType.RunStateHandlers, number, StateProp];
+  | [WorkerMessageType.InitializedWebWorker]
+  | [WorkerMessageType.InitializedEnvironmentScript, WinId, number, string]
+  | [WorkerMessageType.InitializeNextEnvironmentScript, WinId]
+  | [WorkerMessageType.ForwardWorkerAccessResponse, WinId, MainAccessResponse]
+  | [WorkerMessageType.RunStateHandlers, WinId, number, StateProp];
 
 export type MessageFromSandboxToWorker =
   | [WorkerMessageType.MainDataResponseToWorker, InitWebWorkerData]
-  | [WorkerMessageType.InitializeNextWorkerScript, InitializeScriptData]
+  | [WorkerMessageType.InitializeEnvironment, InitializeEnvironmentData]
+  | [WorkerMessageType.InitializeNextEnvironmentScript, InitializeScriptData]
   | [WorkerMessageType.RefHandlerCallback, RefHandlerCallbackData]
-  | [WorkerMessageType.ForwardWorkerAccessRequest, MainAccessRequest]
+  | [WorkerMessageType.ForwardWorkerAccessRequest, WinId, MainAccessRequest]
   | [WorkerMessageType.ForwardMainTrigger, ForwardMainTriggerData]
-  | [WorkerMessageType.RunStateHandlers, number, StateProp];
+  | [WorkerMessageType.RunStateHandlers, WinId, number, StateProp];
 
 export const enum WorkerMessageType {
   MainDataRequestFromWorker,
   MainDataResponseToWorker,
-  InitializedWorkerScript,
-  InitializeNextWorkerScript,
+  InitializedWebWorker,
+  InitializeEnvironment,
+  InitializedEnvironmentScript,
+  InitializeNextEnvironmentScript,
   RefHandlerCallback,
   ForwardWorkerAccessRequest,
   ForwardWorkerAccessResponse,
   ForwardMainTrigger,
   RunStateHandlers,
+}
+
+export interface InitializeEnvironmentData {
+  $winId$: number;
+  $url$: string;
 }
 
 export interface ForwardMainTriggerData {
@@ -61,15 +72,14 @@ export type PostMessageToWorker = (msg: MessageFromSandboxToWorker) => void;
 export interface MainWindowContext {
   $winId$: number;
   $parentWinId$: number;
-  $cleanupInc$: number;
-  $config$: PartytownConfig | undefined;
-  $interfaces$?: InterfaceInfo[];
+  // $cleanupInc$: number;
+  // $config$: PartytownConfig | undefined;
+  // $interfaces$?: InterfaceInfo[];
   $isInitialized$?: boolean;
-  $libPath$: string;
+  // $libPath$: string;
   $startTime$?: number;
   $url$: string;
   $window$: MainWindow;
-  $worker$?: PartytownWebWorker;
 }
 
 export interface PartytownWebWorker extends Worker {
@@ -77,26 +87,34 @@ export interface PartytownWebWorker extends Worker {
 }
 
 export interface InitWebWorkerData {
-  $winId$: number;
-  $parentWinId$: number;
   $config$: PartytownConfig;
-  $documentCompatMode$: string;
-  $documentReadyState$: string;
-  $documentReferrer$: string;
-  $firstScriptId$: number;
   $htmlConstructors$: string[];
   $interfaces$: InterfaceInfo[];
   $libPath$?: string;
-  $url$: string;
 }
 
 export interface InitWebWorkerContext {
-  $currentScriptId$: number;
-  $currentScriptUrl$: string;
-  $importScripts$: (...urls: string[]) => void;
   $isInitialized$?: boolean;
-  $location$: Location;
   $postMessage$: (msg: MessageFromWorkerToSandbox) => void;
+  $environments$: { [winId: number]: WebWorkerEnvironment };
+}
+
+export interface WebWorkerContext extends InitWebWorkerData, InitWebWorkerContext {}
+
+export interface WebWorkerEnvironment {
+  $winId$: number;
+  $currentScriptId$?: number;
+  $currentScriptUrl$?: string;
+  $location$: Location;
+  $globals$: WebWorkerGlobal[];
+  $run$: (content: string) => void;
+}
+
+export interface WebWorkerGlobal {
+  // $instanceId$: number;
+  $memberName$: string;
+  $interfaceType$: InterfaceType;
+  $implementation$: any;
 }
 
 export type InterfaceInfo = [InterfaceType, string, MembersInterfaceTypeInfo];
@@ -121,16 +139,17 @@ export const enum InterfaceType {
   DocumentFragmentNode = 11,
 
   // Global Constructors and window function implementations
-  Function = 12,
-  CSSStyleDeclaration = 13,
-  DOMStringMap = 14,
-  DOMTokenList = 15,
-  History = 16,
-  MutationObserver = 17,
-  NodeList = 18,
-  NamedNodeMap = 19,
-  Screen = 20,
-  Storage = 21,
+  Primitive = 12,
+  Function = 13,
+  CSSStyleDeclaration = 14,
+  DOMStringMap = 15,
+  DOMTokenList = 16,
+  History = 17,
+  MutationObserver = 18,
+  NodeList = 19,
+  NamedNodeMap = 20,
+  Screen = 21,
+  Storage = 22,
 }
 
 export const enum PlatformInstanceId {
@@ -140,8 +159,6 @@ export const enum PlatformInstanceId {
   head,
   body,
 }
-
-export interface WebWorkerContext extends InitWebWorkerData, InitWebWorkerContext {}
 
 export interface InitializeScriptData {
   $winId$: number;
@@ -161,7 +178,7 @@ export interface MainAccessRequest {
   $msgId$: number;
   $winId$: number;
   $contextWinId$?: number;
-  $forwardToWorkerAccess$: boolean;
+  // $forwardToWorkerAccess$: boolean;
   $instanceId$: number;
   $interfaceType$: InterfaceType;
   $nodeName$?: string;
@@ -210,14 +227,7 @@ export type SerializedPrimitiveTransfer =
 export type SerializedRefTransfer = [SerializedType.Ref, SerializedRefTransferData];
 
 export interface SerializedRefTransferData {
-  /**
-   * The window the reference "meant" to be on
-   */
   $winId$: number;
-  /**
-   * The window the reference is "actually" persisted in
-   */
-  $contextWinId$: number;
   $instanceId$: number;
   $refId$: number;
 }

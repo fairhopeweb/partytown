@@ -18,22 +18,22 @@ export class HTMLImageElement {
     return this.s;
   }
   set src(src: string) {
-    if (debug && webWorkerCtx.$config$.logImageRequests) {
-      logWorker(`Image() request: ${resolveUrl(src)}`);
-    }
-    fetch(resolveUrl(src) + '', {
-      mode: 'no-cors',
-      keepalive: true,
-    }).then(
-      (rsp) => {
-        if (rsp.ok) {
-          this.l.forEach((cb) => cb({ type: 'load' }));
-        } else {
-          this.e.forEach((cb) => cb({ type: 'error' }));
-        }
-      },
-      () => this.e.forEach((cb) => cb({ type: 'error' }))
-    );
+    // if (debug && webWorkerCtx.$config$.logImageRequests) {
+    //   logWorker(`Image() request: ${resolveUrl(src)}`);
+    // }
+    // fetch(resolveUrl(src) + '', {
+    //   mode: 'no-cors',
+    //   keepalive: true,
+    // }).then(
+    //   (rsp) => {
+    //     if (rsp.ok) {
+    //       this.l.forEach((cb) => cb({ type: 'load' }));
+    //     } else {
+    //       this.e.forEach((cb) => cb({ type: 'error' }));
+    //     }
+    //   },
+    //   () => this.e.forEach((cb) => cb({ type: 'error' }))
+    // );
   }
 
   addEventListener(eventName: 'load' | 'error', cb: EventHandler) {

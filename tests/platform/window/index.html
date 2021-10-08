@@ -53,6 +53,43 @@
     <h1>Window</h1>
     <ul>
       <li>
+        <strong>Window.name</strong>
+        <code id="testWindowName"></code>
+        <script type="text/partytown">
+          (function () {
+            const elm = document.getElementById('testWindowName');
+            elm.textContent = Window.name;
+          })();
+        </script>
+      </li>
+
+      <li>
+        <strong>HTMLAnchorElement.name</strong>
+        <code id="testHTMLAnchorElementName"></code>
+        <script type="text/partytown">
+          (function () {
+            const elm = document.getElementById('testHTMLAnchorElementName');
+            elm.textContent = HTMLAnchorElement.name;
+          })();
+        </script>
+      </li>
+
+      <li>
+        <strong>window.name</strong>
+        <code id="testName" style="font-size: 10px"></code>
+        <code id="testNameEquals"></code>
+        <script type="text/partytown">
+          (function () {
+            const elm = document.getElementById('testName');
+            elm.textContent = window.name;
+
+            const elmEqls = document.getElementById('testNameEquals');
+            elmEqls.textContent = name === window.name;
+          })();
+        </script>
+      </li>
+
+      <li>
         <strong>getComputedStyle()</strong>
         <code id="testGetComputedStyle" style="color: purple"></code>
         <script type="text/partytown">
@@ -106,17 +143,6 @@
               const elm = document.getElementById('testPrompt');
               elm.textContent = prompt('MPH');
             });
-          })();
-        </script>
-      </li>
-
-      <li>
-        <strong>Window.name</strong>
-        <code id="testWindowName"></code>
-        <script type="text/partytown">
-          (function () {
-            const elm = document.getElementById('testWindowName');
-            elm.textContent = Window.name;
           })();
         </script>
       </li>

@@ -28,7 +28,10 @@ export class Node extends WorkerProxy {
     if (newNode[NodeNameKey] === NodeName.IFrame) {
       insertIframe(newNode);
     } else if (newNode[NodeNameKey] === NodeName.Script) {
-      webWorkerCtx.$postMessage$([WorkerMessageType.InitializeNextWorkerScript]);
+      webWorkerCtx.$postMessage$([
+        WorkerMessageType.InitializeNextEnvironmentScript,
+        this[WinIdKey],
+      ]);
     }
 
     return newNode;

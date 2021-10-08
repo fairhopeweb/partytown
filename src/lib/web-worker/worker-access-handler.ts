@@ -51,9 +51,9 @@ export const workerAccessHandler = (accessReq: MainAccessRequest) => {
 
     if (accessType === AccessType.Get) {
       rtnValue = instance[lastMemberName];
-      logWorkerGetter(instance, memberPath, rtnValue, false);
+      // logWorkerGetter(instance, memberPath, rtnValue, false);
     } else if (accessType === AccessType.Set) {
-      logWorkerSetter(instance, memberPath, data, false);
+      // logWorkerSetter(instance, memberPath, data, false);
       instance[lastMemberName] = data;
     } else if (accessType === AccessType.CallMethod) {
       if (instanceId === PlatformInstanceId.document && lastMemberName === 'createElement') {
@@ -67,7 +67,7 @@ export const workerAccessHandler = (accessReq: MainAccessRequest) => {
       } else {
         rtnValue = instance[lastMemberName].apply(instance, data);
       }
-      logWorkerCall(instance, memberPath, data, rtnValue, false);
+      // logWorkerCall(instance, memberPath, data, rtnValue, false);
     }
 
     accessRsp.$rtnValue$ = serializeForMain($winId$, instanceId, rtnValue);
@@ -75,5 +75,5 @@ export const workerAccessHandler = (accessReq: MainAccessRequest) => {
     accessRsp.$error$ = String(e.stack || e);
   }
 
-  webWorkerCtx.$postMessage$([WorkerMessageType.ForwardWorkerAccessResponse, accessRsp]);
+  webWorkerCtx.$postMessage$([WorkerMessageType.ForwardWorkerAccessResponse, $winId$, accessRsp]);
 };

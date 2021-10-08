@@ -3,22 +3,22 @@ import {
   MainAccessRequest,
   MainAccessResponse,
   MainWindowContext,
-  WorkerMessageType,
+  PartytownWebWorker,
 } from '../types';
 import { deserializeFromWorker, serializeForWorker } from './main-serialization';
 import { EMPTY_ARRAY, isPromise, len } from '../utils';
-import { forwardMsgResolves, winCtxs } from './main-constants';
 import { getInstance, setInstanceId } from './main-instances';
 
 export const mainAccessHandler = async (
+  worker: PartytownWebWorker,
   winCtx: MainWindowContext,
   accessReq: MainAccessRequest
 ) => {
+  let $winId$ = accessReq.$winId$;
   let accessRsp: MainAccessResponse = {
     $msgId$: accessReq.$msgId$,
-    $winId$: accessReq.$winId$,
+    $winId$,
   };
-
   let instanceId = accessReq.$instanceId$;
   let accessType = accessReq.$accessType$;
   let memberPath = accessReq.$memberPath$;
@@ -37,13 +37,14 @@ export const mainAccessHandler = async (
 
   try {
     // deserialize the data, such as a getter value or function arguments
-    data = deserializeFromWorker(accessReq.$data$);
+    data = deserializeFromWorker(worker, accessReq.$data$);
 
-    if (accessReq.$forwardToWorkerAccess$) {
-      // same as continue;
-    } else if (accessType === AccessType.GlobalConstructor) {
+    // if (accessReq.$forwardToWorkerAccess$) {
+    //   // same as continue;
+    // } else
+    if (accessType === AccessType.GlobalConstructor) {
       // create a new instance of a global constructor
-      setInstanceId(winCtx, new (winCtx.$window$ as any)[lastMemberName](...data), instanceId);
+      setInstanceId(new (winCtx.$window$ as any)[lastMemberName](...data), instanceId);
     } else {
       // get the existing instance
       instance = getInstance(accessRsp.$winId$, instanceId);
@@ -81,11 +82,11 @@ export const mainAccessHandler = async (
             }
 
             immediateSetterTarget[immediateSetterMemberPath[immediateSetterMemberNameLen - 1]] =
-              deserializeFromWorker(immediateSetter[1]);
+              deserializeFromWorker(worker, immediateSetter[1]);
           });
 
           if (accessReq.$newInstanceId$) {
-            setInstanceId(winCtx, rtnValue, accessReq.$newInstanceId$);
+            setInstanceId(rtnValue, accessReq.$newInstanceId$);
           }
         }
 
@@ -93,7 +94,7 @@ export const mainAccessHandler = async (
           rtnValue = await rtnValue;
           accessRsp.$isPromise$ = true;
         }
-        accessRsp.$rtnValue$ = serializeForWorker(winCtx, rtnValue);
+        accessRsp.$rtnValue$ = serializeForWorker($winId$, rtnValue);
       } else {
         accessRsp.$error$ = `${instanceId} not found`;
       }
@@ -102,23 +103,24 @@ export const mainAccessHandler = async (
     accessRsp.$error$ = String(e.stack || e);
   }
 
-  if (accessReq.$forwardToWorkerAccess$) {
-    return new Promise<MainAccessResponse>((resolve) => {
-      const forwardToWinId = accessReq.$contextWinId$ || accessReq.$winId$;
-      const otherWinCtx = winCtxs.get(forwardToWinId);
+  // if (accessReq.$forwardToWorkerAccess$) {
+  //   return new Promise<MainAccessResponse>((resolve) => {
+  //     const forwardToWinId = accessReq.$contextWinId$ || accessReq.$winId$;
+  //     const otherWinCtx = winCtxs.get(forwardToWinId);
 
-      tmr = setTimeout(() => {
-        forwardMsgResolves.delete(accessReq.$msgId$);
-        accessRsp.$error$ = `Timeout`;
-        resolve(accessRsp);
-      }, 30000);
+  //     tmr = setTimeout(() => {
+  //       forwardMsgResolves.delete(accessReq.$msgId$);
+  //       accessRsp.$error$ = `Timeout`;
+  //       resolve(accessRsp);
+  //     }, 30000);
 
-      forwardMsgResolves.set(accessReq.$msgId$, [resolve, tmr]);
-      otherWinCtx!.$worker$!.postMessage([WorkerMessageType.ForwardWorkerAccessRequest, accessReq]);
-    });
-  } else {
-    return accessRsp;
-  }
+  //     forwardMsgResolves.set(accessReq.$msgId$, [resolve, tmr]);
+  //     // otherWinCtx!.$worker$!.postMessage([WorkerMessageType.ForwardWorkerAccessRequest, accessReq]);
+  //   });
+  // } else {
+  //   return accessRsp;
+  // }
+  return accessRsp;
 };
 
 const isMemberInInstance = (instance: any, memberPath: string[]) => memberPath[0] in instance;

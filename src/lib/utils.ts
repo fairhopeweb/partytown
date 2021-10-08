@@ -21,23 +21,17 @@ export const toLower = (str: string) => str.toLowerCase();
 
 export const toUpper = (str: string) => str.toUpperCase();
 
-export const logMain = (winCtx: MainWindowContext, msg: string) => {
+export const logMain = (msg: string) => {
   if (debug) {
-    let prefix: string;
-    if (winCtx.$winId$ === TOP_WIN_ID) {
-      prefix = `Main (${winCtx.$winId$}) 🌎`;
-    } else {
-      prefix = `Iframe (${winCtx.$winId$}) 👾`;
-    }
     console.debug.apply(console, [
-      `%c${prefix}`,
+      `%cMain 🌎`,
       `background: #717171; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;`,
       msg,
     ]);
   }
 };
 
-export const logWorker = (msg: string) => {
+export const logWorker = (msg: string, winId = -1) => {
   if (debug) {
     try {
       const config = webWorkerCtx.$config$;
@@ -48,85 +42,70 @@ export const logWorker = (msg: string) => {
         msg += '\n' + frames.slice(i + 1).join('\n');
       }
 
+      let prefix: string;
+      let color: string;
+      if (winId > -1) {
+        prefix = `Worker (${winId}) 🎉`;
+        color = `#3498db`;
+      } else {
+        prefix = self.name;
+        color = `#006404`;
+      }
+
       console.debug.apply(console, [
-        `%c${self.name}`,
-        `background: #3498db; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;`,
+        `%c${prefix}`,
+        `background: ${color}; color: white; padding: 2px 3px; border-radius: 2px; font-size: 0.8em;`,
         msg,
       ]);
     } catch (e) {}
   }
 };
 
-export const logWorkerGetter = (
-  target: any,
-  memberPath: string[],
-  rtnValue: any,
-  skipOtherWindow = true
-) => {
+export const logWorkerGetter = (target: any, memberPath: string[], rtnValue: any) => {
   if (debug && webWorkerCtx.$config$.logGetters) {
     try {
-      if (target && target[WinIdKey] !== webWorkerCtx.$winId$ && skipOtherWindow) {
-        return;
-      }
       logWorker(
         `Get ${logTargetProp(target, AccessType.Get, memberPath)}, returned: ${logValue(
           memberPath,
           rtnValue
-        )} `
+        )}`,
+        target[WinIdKey]
       );
     } catch (e) {}
   }
 };
 
-export const logWorkerSetter = (
-  target: any,
-  memberPath: string[],
-  value: any,
-  skipOtherWindow = true
-) => {
+export const logWorkerSetter = (target: any, memberPath: string[], value: any) => {
   if (debug && webWorkerCtx.$config$.logSetters) {
     try {
-      if (target && target[WinIdKey] !== webWorkerCtx.$winId$ && skipOtherWindow) {
-        return;
-      }
       logWorker(
         `Set ${logTargetProp(target, AccessType.Set, memberPath)}, value: ${logValue(
           memberPath,
           value
-        )}`
+        )}`,
+        target[WinIdKey]
       );
     } catch (e) {}
   }
 };
 
-export const logWorkerCall = (
-  target: any,
-  memberPath: string[],
-  args: any[],
-  rtnValue: any,
-  skipOtherWindow = true
-) => {
+export const logWorkerCall = (target: any, memberPath: string[], args: any[], rtnValue: any) => {
   if (debug && webWorkerCtx.$config$.logCalls) {
     try {
-      if (target && target[WinIdKey] !== webWorkerCtx.$winId$ && skipOtherWindow) {
-        return;
-      }
       logWorker(
         `Call ${logTargetProp(target, AccessType.CallMethod, memberPath)}(${args
           .map((v) => logValue(memberPath, v))
-          .join(', ')}), returned: ${logValue(memberPath, rtnValue)}`
+          .join(', ')}), returned: ${logValue(memberPath, rtnValue)}`,
+        target[WinIdKey]
       );
     } catch (e) {}
   }
 };
 
-export const logWorkerGlobalConstructor = (target: any, cstrName: string, args: any[]) => {
+export const logWorkerGlobalConstructor = (winId: number, cstrName: string, args: any[]) => {
   if (debug && webWorkerCtx.$config$.logCalls) {
     try {
-      if (target && target[WinIdKey] !== webWorkerCtx.$winId$) {
-        return;
-      }
-      logWorker(`Construct new ${cstrName}(${args.map((v) => logValue([], v)).join(', ')})`);
+      logWorker(`Construct new ${cstrName}(${args.map((v) => logValue([], v)).join(', ')})`, winId);
     } catch (e) {}
   }
 };

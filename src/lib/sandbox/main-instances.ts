@@ -23,14 +23,13 @@ export const getInstanceId = (instance: InstanceType | null | undefined) => {
 };
 
 export const getAndSetInstanceId = (
-  winCtx: MainWindowContext,
   instance: InstanceType | null | undefined,
   instanceId?: number
 ) => {
   if (instance) {
     instanceId = getInstanceId(instance);
     if (typeof instanceId !== 'number') {
-      setInstanceId(winCtx, instance, (instanceId = randomId()));
+      setInstanceId(instance, (instanceId = randomId()));
     }
     return instanceId;
   }
@@ -66,36 +65,32 @@ export const getInstance = <T = InstanceType | null>(
   }
 };
 
-export const setInstanceId = (
-  winCtx: MainWindowContext,
-  instance: InstanceType | null | undefined,
-  instanceId: number
-) => {
+export const setInstanceId = (instance: InstanceType | null | undefined, instanceId: number) => {
   if (instance) {
     mainInstances.push([instanceId, instance]);
     mainInstanceIdByInstance.set(instance, instanceId);
 
-    winCtx.$cleanupInc$++;
-    if (winCtx.$cleanupInc$ > 99) {
-      winCtx.$cleanupInc$ = 0;
-      while (true) {
-        let disconnectedNodes = mainInstances.filter(
-          (i) => (i[1] as InstanceNode).nodeType && !(i[1] as InstanceNode).isConnected
-        );
-        let i: number;
-        let l: number;
-        if (len(disconnectedNodes) > 99) {
-          for (i = 0, l = len(mainInstances); i < l; i++) {
-            if (!(mainInstances[i][1] as InstanceNode).isConnected) {
-              mainInstances.slice(i, 1);
-              break;
-            }
-          }
-        } else {
-          break;
-        }
-      }
-    }
+    // winCtx.$cleanupInc$++;
+    // if (winCtx.$cleanupInc$ > 99) {
+    //   winCtx.$cleanupInc$ = 0;
+    //   while (true) {
+    //     let disconnectedNodes = mainInstances.filter(
+    //       (i) => (i[1] as InstanceNode).nodeType && !(i[1] as InstanceNode).isConnected
+    //     );
+    //     let i: number;
+    //     let l: number;
+    //     if (len(disconnectedNodes) > 99) {
+    //       for (i = 0, l = len(mainInstances); i < l; i++) {
+    //         if (!(mainInstances[i][1] as InstanceNode).isConnected) {
+    //           mainInstances.slice(i, 1);
+    //           break;
+    //         }
+    //       }
+    //     } else {
+    //       break;
+    //     }
+    //   }
+    // }
   }
 };
 

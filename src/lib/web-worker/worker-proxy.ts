@@ -38,18 +38,16 @@ const syncMessage = (
   $memberPath$: string[],
   $data$?: SerializedTransfer | undefined,
   $immediateSetters$?: ImmediateSetter[],
-  $newInstanceId$?: number,
-  $contextWinId$?: number
+  $newInstanceId$?: number
 ) => {
   const $winId$ = instance[WinIdKey];
   const $instanceId$ = instance[InstanceIdKey];
 
-  const $forwardToWorkerAccess$ = webWorkerCtx.$winId$ !== $winId$ || !!$contextWinId$;
+  // const $forwardToWorkerAccess$ = webWorkerCtx.$winId$ !== $winId$ || !!$contextWinId$;
 
   const accessReq: MainAccessRequest = {
     $msgId$: randomId(),
     $winId$,
-    $forwardToWorkerAccess$,
     $instanceId$: instance[InstanceIdKey],
     $interfaceType$: instance[InterfaceTypeKey],
     $nodeName$: instance[NodeNameKey],
@@ -58,9 +56,7 @@ const syncMessage = (
     $data$,
     $immediateSetters$,
     $newInstanceId$,
-    $contextWinId$,
   };
-  console.log('syncMessage in', name, JSON.stringify(accessReq));
 
   const accessRsp: MainAccessResponse = syncSendMessage(webWorkerCtx, accessReq);
 
@@ -120,13 +116,9 @@ export const callMethod = (
   memberPath: string[],
   args: any[],
   immediateSetters?: ImmediateSetter[],
-  newInstanceId?: number,
-  contextWinId?: number
+  newInstanceId?: number
 ) => {
   const winId = instance[WinIdKey];
-  if (memberPath.includes('fn')) {
-    console.log('callMethod', memberPath, 'in', name);
-  }
 
   applyBeforeSyncSetters(winId, instance);
 
@@ -142,21 +134,19 @@ export const callMethod = (
     memberPath,
     serializeForMain(winId, instance[InstanceIdKey], args),
     immediateSetters,
-    newInstanceId,
-    contextWinId
+    newInstanceId
   );
   logWorkerCall(instance, memberPath, args, rtnValue);
   return rtnValue;
 };
 
 export const createGlobalConstructorProxy = (
-  self: any,
+  winId: number,
   interfaceType: InterfaceType,
   cstrName: string
 ) => {
   const GlobalCstr = class {
     constructor(...args: any[]) {
-      const winId = webWorkerCtx.$winId$;
       const instanceId = randomId();
       const workerProxy = new WorkerProxy(interfaceType, instanceId, winId);
 
@@ -173,13 +163,13 @@ export const createGlobalConstructorProxy = (
         serializeForMain(winId, instanceId, args)
       );
 
-      logWorkerGlobalConstructor(workerProxy, cstrName, args);
+      logWorkerGlobalConstructor(winId, cstrName, args);
 
       return workerProxy;
     }
   };
 
-  self[cstrName] = Object.defineProperty(GlobalCstr, 'name', {
+  return Object.defineProperty(GlobalCstr, 'name', {
     value: cstrName,
   });
 };
@@ -237,7 +227,7 @@ const createComplexMember = (
   if (typeof stateValue === 'function') {
     return (...args: any[]) => {
       const rtnValue = stateValue.apply(instance, args);
-      logWorkerCall(instance, memberPath, args, rtnValue, false);
+      logWorkerCall(instance, memberPath, args, rtnValue);
       return rtnValue;
     };
   }

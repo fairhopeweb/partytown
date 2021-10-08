@@ -1,7 +1,19 @@
-import { getConstructorName, isValidMemberName, noop } from '../utils';
-import { InterfaceInfo, InterfaceType, MembersInterfaceTypeInfo } from '../types';
+import { debug, getConstructorName, isValidMemberName, logMain, noop } from '../utils';
+import {
+  InitWebWorkerData,
+  InterfaceInfo,
+  InterfaceType,
+  MainWindow,
+  MembersInterfaceTypeInfo,
+} from '../types';
 
-export const readMainInterfaces = (win: Window, doc: Document) => {
+export const readMainInterfaces = (win: MainWindow) => {
+  // web worker has requested data from the main thread
+  const doc = win.document;
+  const $config$ = win.partytown || {};
+  const $libPath$ = ($config$.lib || '/~partytown/') + (debug ? 'debug/' : '');
+  const $url$ = win.location + '';
+
   const docImpl = doc.implementation.createHTMLDocument();
   const docHead = docImpl.head;
 
@@ -22,7 +34,7 @@ export const readMainInterfaces = (win: Window, doc: Document) => {
     [InterfaceType.TextNode, docImpl.createTextNode('')],
   ].map((i) => [...i, getConstructorName(i[1] as any)]) as any;
 
-  return implementations.map(([interfaceType, impl, cstrName]) => {
+  const $interfaces$ = implementations.map(([interfaceType, impl, cstrName]) => {
     let members: MembersInterfaceTypeInfo = {};
     let memberName: string;
     let value: any;
@@ -50,6 +62,17 @@ export const readMainInterfaces = (win: Window, doc: Document) => {
     const interfaceInfo: InterfaceInfo = [interfaceType, cstrName, members];
     return interfaceInfo;
   });
+
+  const initWebWorkerData: InitWebWorkerData = {
+    $config$,
+    $htmlConstructors$: Object.getOwnPropertyNames(win).filter((c) => c.startsWith('HTML')),
+    $interfaces$,
+    $libPath$: new URL($libPath$, $url$) + '',
+  };
+
+  logMain(`Read main interfaces`);
+
+  return initWebWorkerData;
 };
 
 type MainImplementation = [InterfaceType, any, string];

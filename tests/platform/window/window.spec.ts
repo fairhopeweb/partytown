@@ -5,6 +5,18 @@ test('window', async ({ page }) => {
 
   await page.waitForSelector('.completed');
 
+  const testWindowName = page.locator('#testWindowName');
+  await expect(testWindowName).toHaveText('Window');
+
+  const testHTMLAnchorElementName = page.locator('#testHTMLAnchorElementName');
+  await expect(testHTMLAnchorElementName).toHaveText('HTMLAnchorElement');
+
+  const testName = page.locator('#testName');
+  await expect(testName).toHaveText('Partytown 🎉 (1)');
+
+  const testNameEquals = page.locator('#testNameEquals');
+  await expect(testNameEquals).toHaveText('true');
+
   const testComputedStyle = page.locator('#testGetComputedStyle');
   await expect(testComputedStyle).toHaveText('rgb(128, 0, 128)');
 

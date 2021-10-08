@@ -8,24 +8,25 @@ import { StateProp } from '../types';
 
 export class HTMLScriptElement extends HTMLSrcElement {
   get src() {
-    if (this[WinIdKey] === webWorkerCtx.$winId$) {
-      return getInstanceStateValue<string>(this, StateProp.url) || '';
-    }
+    // if (this[WinIdKey] === webWorkerCtx.$winId$) {
+    //   return getInstanceStateValue<string>(this, StateProp.url) || '';
+    // }
     return getter(this, ['src']);
   }
   set src(url: string) {
-    if (this[WinIdKey] === webWorkerCtx.$winId$) {
-      url = resolveUrl(url) + '';
-      setInstanceStateValue(this, StateProp.url, url);
-      if (this[ImmediateSettersKey]) {
-        this[ImmediateSettersKey]!.push([
-          ['src'],
-          serializeForMain(this[WinIdKey], this[InstanceIdKey], url),
-        ]);
-      }
-    } else {
-      setter(this, ['src'], url);
-    }
+    // if (this[WinIdKey] === webWorkerCtx.$winId$) {
+    //   url = resolveUrl(url) + '';
+    //   setInstanceStateValue(this, StateProp.url, url);
+    //   if (this[ImmediateSettersKey]) {
+    //     this[ImmediateSettersKey]!.push([
+    //       ['src'],
+    //       serializeForMain(this[WinIdKey], this[InstanceIdKey], url),
+    //     ]);
+    //   }
+    // } else {
+    //   setter(this, ['src'], url);
+    // }
+    setter(this, ['src'], url);
   }
 
   get type() {

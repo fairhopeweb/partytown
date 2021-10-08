@@ -33,28 +33,28 @@ export class HTMLIFrameElement extends HTMLSrcElement {
     let xhr = new XMLHttpRequest();
     let iframeContent: string;
 
-    url = resolveUrl(url) + '';
-    if (this.src !== url) {
-      setInstanceStateValue(this, StateProp.loadError, undefined);
-      setInstanceStateValue(this, StateProp.url, url);
+    // url = resolveUrl(url) + '';
+    // if (this.src !== url) {
+    //   setInstanceStateValue(this, StateProp.loadError, undefined);
+    //   setInstanceStateValue(this, StateProp.url, url);
 
-      xhr.open('GET', url, false);
-      xhr.send();
+    //   xhr.open('GET', url, false);
+    //   xhr.send();
 
-      if (xhr.status > 199 && xhr.status < 300) {
-        iframeContent = updateIframeContent(url, xhr.responseText);
-        if (this[ImmediateSettersKey]) {
-          this[ImmediateSettersKey]!.push([
-            ['srcdoc'],
-            serializeForMain(this[WinIdKey], this[InstanceIdKey], iframeContent),
-          ]);
-        } else {
-          setter(this, ['srcdoc'], iframeContent);
-        }
-      } else {
-        setInstanceStateValue(this, StateProp.loadError, xhr.status);
-      }
-    }
+    //   if (xhr.status > 199 && xhr.status < 300) {
+    //     iframeContent = updateIframeContent(url, xhr.responseText);
+    //     if (this[ImmediateSettersKey]) {
+    //       this[ImmediateSettersKey]!.push([
+    //         ['srcdoc'],
+    //         serializeForMain(this[WinIdKey], this[InstanceIdKey], iframeContent),
+    //       ]);
+    //     } else {
+    //       setter(this, ['srcdoc'], iframeContent);
+    //     }
+    //   } else {
+    //     setInstanceStateValue(this, StateProp.loadError, xhr.status);
+    //   }
+    // }
   }
 }
 
@@ -77,8 +77,8 @@ export class Window extends WorkerProxy {
   get parent() {
     return constructInstance(
       InterfaceType.Window,
-      PlatformInstanceId.window,
-      webWorkerCtx.$parentWinId$
+      PlatformInstanceId.window
+      // webWorkerCtx.$parentWinId$
     );
   }
 

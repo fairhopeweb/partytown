@@ -17,9 +17,9 @@ export class HTMLDocument extends HTMLElement {
     );
   }
 
-  get compatMode() {
-    return webWorkerCtx.$documentCompatMode$;
-  }
+  // get compatMode() {
+  //   return webWorkerCtx.$documentCompatMode$;
+  // }
 
   createElement(tagName: string) {
     tagName = toUpper(tagName);
@@ -47,17 +47,17 @@ export class HTMLDocument extends HTMLElement {
     return undefined;
   }
 
-  get currentScript() {
-    if (webWorkerCtx.$currentScriptId$ > 0) {
-      return constructInstance(
-        InterfaceType.Element,
-        webWorkerCtx.$currentScriptId$,
-        this[WinIdKey],
-        NodeName.Script
-      );
-    }
-    return null;
-  }
+  // get currentScript() {
+  //   if (webWorkerCtx.$currentScriptId$ > 0) {
+  //     return constructInstance(
+  //       InterfaceType.Element,
+  //       webWorkerCtx.$currentScriptId$,
+  //       this[WinIdKey],
+  //       NodeName.Script
+  //     );
+  //   }
+  //   return null;
+  // }
 
   get defaultView() {
     return self;
@@ -82,7 +82,7 @@ export class HTMLDocument extends HTMLElement {
       return [
         constructInstance(
           InterfaceType.Element,
-          webWorkerCtx.$firstScriptId$,
+          99, //webWorkerCtx.$firstScriptId$,
           this[WinIdKey],
           NodeName.Script
         ),
@@ -107,14 +107,14 @@ export class HTMLDocument extends HTMLElement {
     };
   }
 
-  get location() {
-    logWorkerGetter(this, ['location'], webWorkerCtx.$location$);
-    return webWorkerCtx.$location$;
-  }
-  set location(url: any) {
-    logWorkerSetter(this, ['location'], url);
-    webWorkerCtx.$location$!.href = url + '';
-  }
+  // get location() {
+  //   logWorkerGetter(this, ['location'], webWorkerCtx.$location$);
+  //   return webWorkerCtx.$location$;
+  // }
+  // set location(url: any) {
+  //   logWorkerSetter(this, ['location'], url);
+  //   webWorkerCtx.$location$!.href = url + '';
+  // }
 
   get parentNode() {
     return null;
@@ -124,19 +124,19 @@ export class HTMLDocument extends HTMLElement {
     return null;
   }
 
-  get readyState() {
-    if (webWorkerCtx.$documentReadyState$ !== 'complete') {
-      webWorkerCtx.$documentReadyState$ = getter(this, ['readyState']);
-    } else {
-      logWorkerGetter(this, ['readyState'], webWorkerCtx.$documentReadyState$);
-    }
-    return webWorkerCtx.$documentReadyState$;
-  }
+  // get readyState() {
+  //   if (webWorkerCtx.$documentReadyState$ !== 'complete') {
+  //     webWorkerCtx.$documentReadyState$ = getter(this, ['readyState']);
+  //   } else {
+  //     logWorkerGetter(this, ['readyState'], webWorkerCtx.$documentReadyState$);
+  //   }
+  //   return webWorkerCtx.$documentReadyState$;
+  // }
 
-  get referrer() {
-    logWorkerGetter(this, ['referrer'], webWorkerCtx.$documentReferrer$);
-    return webWorkerCtx.$documentReferrer$;
-  }
+  // get referrer() {
+  //   logWorkerGetter(this, ['referrer'], webWorkerCtx.$documentReferrer$);
+  //   return webWorkerCtx.$documentReferrer$;
+  // }
 }
 
 export class WorkerDocumentElementChild extends HTMLElement {
