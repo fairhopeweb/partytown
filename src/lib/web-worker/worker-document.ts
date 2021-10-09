@@ -26,15 +26,12 @@ export class HTMLDocument extends HTMLElement {
     const ElementCstr = getElementConstructor(tagName);
     const elm = new ElementCstr(InterfaceType.Element, instanceId, winId, tagName);
 
-    if (tagName === NodeName.Script) {
-      elm[ImmediateSettersKey] = [[['type'], serializeForMain(winId, instanceId, SCRIPT_TYPE)]];
-    } else if (tagName === NodeName.IFrame) {
-      elm[ImmediateSettersKey] = [
-        [['srcdoc'], serializeForMain(winId, instanceId, getPartytownScript())],
-      ];
-    } else {
-      elm[ImmediateSettersKey] = [];
-    }
+    elm[ImmediateSettersKey] =
+      tagName === NodeName.Script
+        ? [[['type'], serializeForMain(winId, instanceId, SCRIPT_TYPE)]]
+        : tagName === NodeName.IFrame
+        ? [[['srcdoc'], serializeForMain(winId, instanceId, getPartytownScript())]]
+        : [];
 
     return elm;
   }
@@ -102,15 +99,15 @@ export class HTMLDocument extends HTMLElement {
 
   get location() {
     if (debug) {
-      logWorkerGetter(this, ['location'], getEnvWindow(this).location);
+      logWorkerGetter(this, ['location'], getEnv(this).$location$);
     }
-    return getEnvWindow(this).location;
+    return getEnv(this).$location$;
   }
   set location(url: any) {
     if (debug) {
       logWorkerSetter(this, ['location'], url);
     }
-    getEnvWindow(this).location.href = url + '';
+    getEnv(this).$location$.href = url + '';
   }
 
   get parentNode() {

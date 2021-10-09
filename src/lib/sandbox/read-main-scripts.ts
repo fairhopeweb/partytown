@@ -9,23 +9,23 @@ import {
 import { mainForwardTrigger } from './main-forward-trigger';
 
 export const readNextScript = (worker: PartytownWebWorker, winCtx: MainWindowContext) => {
-  const $winId$ = winCtx.$winId$;
-  const win = winCtx.$window$;
-  const doc = win.document;
-  const scriptElm = doc.querySelector<HTMLScriptElement>(
-    `script[type="${SCRIPT_TYPE}"]:not([data-pt-id]):not([data-pt-error])`
+  let $winId$ = winCtx.$winId$;
+  let win = winCtx.$window$;
+  let doc = win.document;
+  let scriptElm = doc.querySelector<HTMLScriptElement>(
+    `script[type="${SCRIPT_TYPE}"]:not([data-ptid]):not([data-pterror])`
   );
+  let $instanceId$: number;
+  let scriptData: InitializeScriptData;
 
   if (scriptElm) {
     // read the next script found
-    const $instanceId$ = getAndSetInstanceId(scriptElm, $winId$);
+    scriptElm.dataset.ptid = $instanceId$ = getAndSetInstanceId(scriptElm, $winId$) as any;
 
-    const scriptData: InitializeScriptData = {
+    scriptData = {
       $winId$,
       $instanceId$,
     };
-
-    scriptElm.dataset.ptId = $instanceId$ as any;
 
     if (scriptElm.src) {
       scriptData.$url$ = scriptElm.src;
@@ -59,13 +59,11 @@ export const initializedWorkerScript = (
   errorMsg: string,
   script?: HTMLScriptElement | null
 ) => {
-  script = winCtx.$window$.document.querySelector<HTMLScriptElement>(
-    '[data-pt-id="' + instanceId + '"]'
-  );
+  script = winCtx.$window$.document.querySelector<HTMLScriptElement>(`[data-ptid="${instanceId}"]`);
 
   if (script) {
     if (errorMsg) {
-      script.dataset.ptError = errorMsg;
+      script.dataset.pterror = errorMsg;
     } else {
       script.type += '-init';
     }

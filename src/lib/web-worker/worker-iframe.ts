@@ -21,8 +21,6 @@ export class HTMLIFrameElement extends HTMLSrcElement {
     // as the instanceId of the containing iframe element
     const winId = this[InstanceIdKey];
 
-    const parentId = this[WinIdKey];
-
     const win = new Window(InterfaceType.Window, PlatformInstanceId.window, winId);
     win.location = this.src;
     return win;

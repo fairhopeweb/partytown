@@ -17,7 +17,7 @@ export class Node extends WorkerProxy {
   }
 
   get href() {
-    return undefined;
+    return;
   }
   set href(_: any) {}
 

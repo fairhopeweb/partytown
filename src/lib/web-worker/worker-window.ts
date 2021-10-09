@@ -12,7 +12,6 @@ export class Window {
 
     return new Proxy(this, {
       get(target: any, propName) {
-        console.log('window get', propName);
         if (propName in target) {
           return target[propName];
         } else {
@@ -20,7 +19,6 @@ export class Window {
         }
       },
       set(target: any, propName, value) {
-        console.log('window set', propName, value);
         target[propName] = value;
         return true;
       },

@@ -1,5 +1,7 @@
 import { callMethod, createGlobalConstructorProxy, proxy } from './worker-proxy';
 import { constructInstance } from './worker-constructors';
+import { createImageConstructor } from './worker-image';
+import { environments, webWorkerCtx, WinIdKey } from './worker-constants';
 import {
   InitializeEnvironmentData,
   InterfaceType,
@@ -7,11 +9,9 @@ import {
   WebWorkerGlobal,
   WorkerMessageType,
 } from '../types';
-import { logWorker } from '../utils';
 import { Location } from './worker-location';
-import { environments, webWorkerCtx, WinIdKey } from './worker-constants';
+import { logWorker } from '../utils';
 import { Window } from './worker-window';
-import { createImageConstructor } from './worker-image';
 
 export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironmentData) => {
   const $winId$ = initEnvData.$winId$;
