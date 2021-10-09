@@ -12,18 +12,14 @@ import { registerWindow } from './main-register-window';
 import syncCreateMessenger from '@sync-create-messenger';
 import WebWorkerBlob from '@web-worker-blob';
 import WebWorkerUrl from '@web-worker-url';
-import { winCtxs } from './main-constants';
 
 export const initSandbox = async (sandboxWindow: any) => {
   let worker: PartytownWebWorker;
 
   const mainWindow: MainWindow = sandboxWindow.parent;
 
-  const receiveMessage: MessengerRequestCallback = (accessReq, responseCallback) => {
-    const accessWinId = accessReq.$winId$;
-    const winCtx = winCtxs.get(accessWinId)!;
-    mainAccessHandler(worker, winCtx, accessReq).then(responseCallback);
-  };
+  const receiveMessage: MessengerRequestCallback = (accessReq, responseCallback) =>
+    mainAccessHandler(worker, accessReq).then(responseCallback);
 
   const success = await syncCreateMessenger(sandboxWindow, receiveMessage);
 

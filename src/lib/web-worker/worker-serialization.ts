@@ -144,17 +144,18 @@ export const constructSerializedInstance = ({
   }
 };
 
-export const callWorkerRefHandler = (
-  { $winId$, $instanceId$, $refId$, $thisArg$, $args$ }: RefHandlerCallbackData,
-  workerRef?: RefHandler
-) => {
-  workerRef = webWorkerRefsByRefId.get($refId$);
-
-  if (workerRef) {
+export const callWorkerRefHandler = ({
+  $winId$,
+  $instanceId$,
+  $refId$,
+  $thisArg$,
+  $args$,
+}: RefHandlerCallbackData) => {
+  if (webWorkerRefsByRefId[$refId$]) {
     try {
       const thisArg = deserializeFromMain($winId$, $instanceId$, [], $thisArg$);
       const args = deserializeFromMain($winId$, $instanceId$, [], $args$);
-      workerRef.apply(thisArg, args);
+      webWorkerRefsByRefId[$refId$].apply(thisArg, args);
     } catch (e) {
       console.error(e);
     }
@@ -164,20 +165,17 @@ export const callWorkerRefHandler = (
 const deserializeRefFromMain = (
   instanceId: number,
   memberPath: string[],
-  { $winId$, $refId$ }: SerializedRefTransferData,
-  workerRef?: RefHandler
+  { $winId$, $refId$ }: SerializedRefTransferData
 ) => {
-  workerRef = webWorkerRefsByRefId.get($refId$);
-
-  if (!workerRef) {
-    workerRef = function (this: any, ...args: any[]) {
-      const instance = constructInstance(InterfaceType.Window, instanceId, $winId$);
-      return callMethod(instance, memberPath, args);
-    };
-
-    webWorkerRefsByRefId.set($refId$, workerRef);
-    webWorkerRefIdsByRef.set(workerRef, $refId$);
+  if (!webWorkerRefsByRefId[$refId$]) {
+    webWorkerRefIdsByRef.set(
+      (webWorkerRefsByRefId[$refId$] = function (this: any, ...args: any[]) {
+        const instance = constructInstance(InterfaceType.Window, instanceId, $winId$);
+        return callMethod(instance, memberPath, args);
+      }),
+      $refId$
+    );
   }
 
-  return workerRef;
+  return webWorkerRefsByRefId[$refId$];
 };

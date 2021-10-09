@@ -70,8 +70,6 @@ function managlePropsPlugin(): Plugin {
     $currentScriptId$: '',
     $currentScriptUrl$: '',
     $data$: '',
-    $documentCompatMode$: '',
-    $documentReadyState$: '',
     $documentReferrer$: '',
     $error$: '',
     $firstScriptId$: '',

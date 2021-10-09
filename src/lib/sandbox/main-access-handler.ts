@@ -12,7 +12,6 @@ import { winCtxs } from './main-constants';
 
 export const mainAccessHandler = async (
   worker: PartytownWebWorker,
-  winCtx: MainWindowContext,
   accessReq: MainAccessRequest
 ) => {
   let $winId$ = accessReq.$winId$;
@@ -26,6 +25,7 @@ export const mainAccessHandler = async (
   let memberPathLength = len(memberPath);
   let lastMemberName = memberPath[memberPathLength - 1];
   let immediateSetters = accessReq.$immediateSetters$ || EMPTY_ARRAY;
+  let winCtx: MainWindowContext;
   let instance: any;
   let rtnValue: any;
   let data: any;
@@ -35,7 +35,7 @@ export const mainAccessHandler = async (
   let immediateSetterMemberNameLen;
   let waitTmr: any;
 
-  if (!winCtxs.has($winId$)) {
+  if (!winCtxs[$winId$]) {
     logMain(`Waiting on registering window (${normalizedWinId($winId$)})`);
 
     await new Promise<void>((resolve) => {
@@ -44,7 +44,7 @@ export const mainAccessHandler = async (
         if (i++ > 999) {
           accessRsp.$error$ = `Timeout`;
         }
-        if (winCtxs.has($winId$) || accessRsp.$error$) {
+        if (winCtxs[$winId$] || accessRsp.$error$) {
           clearInterval(waitTmr);
           resolve();
         }
@@ -56,6 +56,8 @@ export const mainAccessHandler = async (
     }
   }
 
+  winCtx = winCtxs[$winId$]!;
+
   try {
     // deserialize the data, such as a getter value or function arguments
     data = deserializeFromWorker(worker, accessReq.$data$);
@@ -65,7 +67,7 @@ export const mainAccessHandler = async (
     // } else
     if (accessType === AccessType.GlobalConstructor) {
       // create a new instance of a global constructor
-      setInstanceId(new (winCtx.$window$ as any)[lastMemberName](...data), instanceId);
+      setInstanceId(new (winCtx!.$window$ as any)[lastMemberName](...data), instanceId);
     } else {
       // get the existing instance
       instance = getInstance(accessRsp.$winId$, instanceId);

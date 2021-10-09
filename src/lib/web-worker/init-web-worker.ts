@@ -14,7 +14,6 @@ export const initWebWorker = (gblThis: any, initWebWorkerData: InitWebWorkerData
 
   initElementConstructors(gblThis, initWebWorkerData.$htmlConstructors$);
 
-  webWorkerCtx.$environments$ = {};
   webWorkerCtx.$isInitialized$ = 1;
 
   logWorker(`Initialized web worker`);

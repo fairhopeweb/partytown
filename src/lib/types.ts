@@ -91,9 +91,7 @@ export interface InitWebWorkerData {
 
 export interface InitWebWorkerContext {
   $isInitialized$?: number;
-  $isStartupComplete$?: number;
   $postMessage$: (msg: MessageFromWorkerToSandbox) => void;
-  $environments$: { [winId: number]: WebWorkerEnvironment };
 }
 
 export interface WebWorkerContext extends InitWebWorkerData, InitWebWorkerContext {}
@@ -142,11 +140,12 @@ export const enum InterfaceType {
   DOMStringMap = 15,
   DOMTokenList = 16,
   History = 17,
-  MutationObserver = 18,
-  NodeList = 19,
-  NamedNodeMap = 20,
-  Screen = 21,
-  Storage = 22,
+  Location = 18,
+  MutationObserver = 19,
+  NodeList = 20,
+  NamedNodeMap = 21,
+  Screen = 22,
+  Storage = 23,
 }
 
 export const enum PlatformInstanceId {

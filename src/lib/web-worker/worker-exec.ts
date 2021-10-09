@@ -1,4 +1,5 @@
 import { debug, logWorker, nextTick, SCRIPT_TYPE } from '../utils';
+import { environments, webWorkerCtx } from './worker-constants';
 import {
   EventHandler,
   InitializeScriptData,
@@ -6,11 +7,10 @@ import {
   StateProp,
   WorkerMessageType,
 } from '../types';
+import { getEnv } from './worker-environment';
 import { getInstanceStateValue, getStateValue, setStateValue } from './worker-state';
 import type { HTMLElement } from './worker-element';
 import type { Node } from './worker-node';
-import { webWorkerCtx } from './worker-constants';
-import { getEnv } from './worker-environment';
 
 export const initNextScriptsInWebWorker = async (initScript: InitializeScriptData) => {
   let winId = initScript.$winId$;
@@ -18,7 +18,7 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
   let scriptContent = initScript.$content$;
   let scriptSrc = initScript.$url$;
   let errorMsg = '';
-  let env = webWorkerCtx.$environments$[winId];
+  let env = environments[winId];
   let rsp: Response;
 
   if (scriptSrc) {

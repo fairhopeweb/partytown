@@ -48,7 +48,7 @@ export function loader(
     top!.dispatchEvent(new CustomEvent(PT_IFRAME_APPENDED, { detail: win }));
   } else {
     if (scripts!.length) {
-      timeout = setTimeout(fallback, debug ? 60000 : 10000);
+      //timeout = setTimeout(fallback, debug ? 60000 : 10000);
       doc.addEventListener(PT_INITIALIZED_EVENT, function () {
         clearTimeout(timeout);
       });

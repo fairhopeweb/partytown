@@ -9,7 +9,7 @@ import {
 } from '../types';
 import { logWorker } from '../utils';
 import { Location } from './worker-location';
-import { webWorkerCtx, WinIdKey } from './worker-constants';
+import { environments, webWorkerCtx, WinIdKey } from './worker-constants';
 import { Window } from './worker-window';
 import { createImageConstructor } from './worker-image';
 
@@ -28,7 +28,7 @@ export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironme
 
   const winMembersTypeInfo = winInterface[2];
 
-  const winNames = 'window self top parent globalThis'.split(' ');
+  const winNames = 'window,self,top,parent,globalThis'.split(',');
 
   const $globals$: WebWorkerGlobal[] = winNames.map(($memberName$) => ({
     $interfaceType$: InterfaceType.Window,
@@ -68,6 +68,11 @@ export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironme
 
   $globals$.push(
     {
+      $interfaceType$: InterfaceType.Location,
+      $memberName$: 'location',
+      $implementation$: $location$,
+    },
+    {
       $interfaceType$: InterfaceType.Element,
       $memberName$: 'Image',
       $implementation$: createImageConstructor($winId$),
@@ -79,7 +84,7 @@ export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironme
     }
   );
 
-  interfaces.forEach((i) => {
+  interfaces.map((i) => {
     const $interfaceType$ = i[0];
     const $memberName$ = i[1];
     const $implementation$ = createGlobalConstructorProxy($winId$, $interfaceType$, $memberName$);
@@ -97,28 +102,24 @@ export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironme
     ($memberName$) => $globals$.find((g) => g.$memberName$ === $memberName$)!.$implementation$
   );
 
-  $globals$.forEach((glb) => (($window$ as any)[glb.$memberName$] = glb.$implementation$));
+  $globals$.map((glb) => (($window$ as any)[glb.$memberName$] = glb.$implementation$));
 
-  htmlCstrNames.forEach(
-    (htmlCstrName) => (($window$ as any)[htmlCstrName] = glbThis[htmlCstrName])
-  );
+  htmlCstrNames.map((htmlCstrName) => (($window$ as any)[htmlCstrName] = glbThis[htmlCstrName]));
 
   const $run$ = (content: string) => {
     const fnArgs = [...globalNames, content];
     const runInEnv = new Function(...fnArgs);
-
-    runInEnv(...globalImplementations);
+    runInEnv.apply($window$, globalImplementations);
   };
 
-  webWorkerCtx.$environments$[$winId$] = { $winId$, $globals$, $location$, $window$, $run$ };
+  environments[$winId$] = { $winId$, $globals$, $location$, $window$, $run$ };
 
   logWorker(`Initialized window environment (${$winId$})`, $winId$);
 
   webWorkerCtx.$postMessage$([WorkerMessageType.InitializeNextScript, $winId$]);
 };
 
-export const getEnv = (instance: { [WinIdKey]: number }) =>
-  webWorkerCtx.$environments$[instance[WinIdKey]];
+export const getEnv = (instance: { [WinIdKey]: number }) => environments[instance[WinIdKey]];
 
 export const getEnvWindow = (instance: { [WinIdKey]: number }) => getEnv(instance).$window$;
 

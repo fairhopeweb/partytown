@@ -24,22 +24,21 @@ export const registerWindow = (
     const sendInitEnvironment = () =>
       worker.postMessage([WorkerMessageType.InitializeEnvironment, initEnvData]);
 
-    const winCtx: MainWindowContext = {
+    winCtxs[$winId$] = {
       $winId$,
       $parentWinId$: windowIds.get($window$.parent)!,
       $url$,
       $window$,
     };
     if (debug) {
-      winCtx.$startTime$ = performance.now();
+      winCtxs[$winId$]!.$startTime$ = performance.now();
     }
 
     windowIds.set($window$, $winId$);
-    winCtxs.set($winId$, winCtx);
 
     setInstanceId($window$, PlatformInstanceId.window);
 
-    logMain(`Registered window (${normalizedWinId($winId$)})`);
+    logMain(`Registered window ${normalizedWinId($winId$)}, (${$winId$})`);
 
     if (doc.readyState === 'complete') {
       sendInitEnvironment();

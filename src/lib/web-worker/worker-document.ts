@@ -5,7 +5,7 @@ import { getPartytownScript } from './worker-exec';
 import { HTMLElement } from './worker-element';
 import { ImmediateSettersKey, WinIdKey } from './worker-constants';
 import { InterfaceType, NodeName, PlatformInstanceId } from '../types';
-import { SCRIPT_TYPE, randomId, toUpper, debug } from '../utils';
+import { SCRIPT_TYPE, randomId, toUpper, debug, logWorkerGetter, logWorkerSetter } from '../utils';
 import { serializeForMain } from './worker-serialization';
 
 export class HTMLDocument extends HTMLElement {
@@ -100,14 +100,18 @@ export class HTMLDocument extends HTMLElement {
     };
   }
 
-  // get location() {
-  //   logWorkerGetter(this, ['location'], webWorkerCtx.$location$);
-  //   return webWorkerCtx.$location$;
-  // }
-  // set location(url: any) {
-  //   logWorkerSetter(this, ['location'], url);
-  //   webWorkerCtx.$location$!.href = url + '';
-  // }
+  get location() {
+    if (debug) {
+      logWorkerGetter(this, ['location'], getEnvWindow(this).location);
+    }
+    return getEnvWindow(this).location;
+  }
+  set location(url: any) {
+    if (debug) {
+      logWorkerSetter(this, ['location'], url);
+    }
+    getEnvWindow(this).location.href = url + '';
+  }
 
   get parentNode() {
     return null;
@@ -117,14 +121,10 @@ export class HTMLDocument extends HTMLElement {
     return null;
   }
 
-  // get readyState() {
-  //   if (webWorkerCtx.$documentReadyState$ !== 'complete') {
-  //     webWorkerCtx.$documentReadyState$ = getter(this, ['readyState']);
-  //   } else {
-  //     logWorkerGetter(this, ['readyState'], webWorkerCtx.$documentReadyState$);
-  //   }
-  //   return webWorkerCtx.$documentReadyState$;
-  // }
+  get readyState() {
+    logWorkerGetter(this, ['readyState'], 'complete');
+    return 'complete';
+  }
 
   // get referrer() {
   //   logWorkerGetter(this, ['referrer'], webWorkerCtx.$documentReferrer$);
@@ -140,5 +140,3 @@ export class WorkerDocumentElementChild extends HTMLElement {
     return getEnvDocument(this).documentElement;
   }
 }
-
-let winIds = 1;

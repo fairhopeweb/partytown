@@ -26,6 +26,7 @@ export const readMainInterfaces = (win: MainWindow) => {
     [InterfaceType.DOMTokenList, docHead.classList],
     [InterfaceType.Element, docHead],
     [InterfaceType.History, win.history],
+    [InterfaceType.Location, win.location],
     [InterfaceType.MutationObserver, new MutationObserver(noop)],
     [InterfaceType.NamedNodeMap, docHead.attributes],
     [InterfaceType.NodeList, docHead.childNodes],

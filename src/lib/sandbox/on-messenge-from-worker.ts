@@ -30,7 +30,7 @@ export const onMessageFromWebWorker = (
     registerWindow(worker, randomId(), mainWindow);
   } else {
     const $winId$ = msg[1];
-    const winCtx = winCtxs.get($winId$)!;
+    const winCtx = winCtxs[$winId$]!;
 
     if (msgType === WorkerMessageType.InitializeNextScript) {
       // web worker has been initialized with the main data
@@ -51,10 +51,5 @@ export const onMessageFromWebWorker = (
         readNextScript(worker, winCtx);
       }
     }
-    // else if (msgType === WorkerMessageType.RunStateHandlers) {
-    //   // run this state prop on all web workers (only one of them actually has it)
-    //   // this is used for script onload, when the function was created in another window
-    //   winCtxs.forEach((winCtx) => mainCtx.$worker$!.postMessage(msg));
-    // }
   }
 };

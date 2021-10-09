@@ -43,7 +43,8 @@ export const getInstance = <T = InstanceType | null>(
   winCtx?: MainWindowContext,
   doc?: Document
 ): T | undefined => {
-  winCtx = winCtxs.get(winId)!;
+  winCtx = winCtxs[winId]!;
+
   if (winCtx) {
     doc = winCtx.$window$.document;
     if (instanceId === PlatformInstanceId.document) {

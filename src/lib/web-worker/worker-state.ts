@@ -41,7 +41,7 @@ export const setWorkerRef = (ref: RefHandler, refId?: number) => {
   refId = webWorkerRefIdsByRef.get(ref);
   if (!refId) {
     webWorkerRefIdsByRef.set(ref, (refId = randomId()));
-    webWorkerRefsByRefId.set(refId, ref);
+    webWorkerRefsByRefId[refId] = ref;
   }
   return refId;
 };
