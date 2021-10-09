@@ -1,5 +1,5 @@
 import { debug, logWorker, nextTick, SCRIPT_TYPE } from '../utils';
-import { environments, webWorkerCtx } from './worker-constants';
+import { environments, InstanceIdKey, webWorkerCtx } from './worker-constants';
 import {
   EventHandler,
   InitializeScriptData,
@@ -27,7 +27,7 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
       setStateValue(instanceId, StateProp.url, scriptSrc);
 
       if (debug && webWorkerCtx.$config$.logScriptExecution) {
-        logWorker(`Execute script[data-pt-id="${instanceId}"], src: ${scriptSrc}`, winId);
+        logWorker(`Execute script[data-ptid="${instanceId}"], src: ${scriptSrc}`, winId);
       }
 
       rsp = await fetch(scriptSrc);
@@ -51,7 +51,7 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
   } else if (scriptContent) {
     try {
       if (debug && webWorkerCtx.$config$.logScriptExecution) {
-        logWorker(`Execute script[data-pt-id="${instanceId}"]`, winId);
+        logWorker(`Execute script[data-ptid="${instanceId}"]`, winId);
       }
 
       env.$currentScriptId$ = instanceId;
@@ -82,13 +82,28 @@ const runStateLoadHandlers = (instanceId: number, type: StateProp, handlers?: Ev
 };
 
 export const insertIframe = (iframe: Node) => {
-  let loadError = getInstanceStateValue<StateProp>(iframe, StateProp.loadError);
-  let handlersType = loadError ? StateProp.errorHandlers : StateProp.loadHandlers;
+  // and iframe element's instanceId is also
+  // the winId of it's contentWindow
+  let winId = iframe[InstanceIdKey];
 
-  let handlers = getInstanceStateValue<EventHandler[]>(iframe, handlersType);
-  if (handlers) {
-    handlers.map((handler) => handler({ type: StateProp.loadHandlers }));
-  }
+  let i = 0;
+  let tmr = setInterval(() => {
+    if (i++ > 9999) {
+      clearInterval(tmr);
+      console.error(`Timeout`);
+    } else if (environments[winId]) {
+      clearInterval(tmr);
+
+      let type = getInstanceStateValue<StateProp>(iframe, StateProp.loadError)
+        ? StateProp.errorHandlers
+        : StateProp.loadHandlers;
+
+      let handlers = getInstanceStateValue<EventHandler[]>(iframe, type);
+      if (handlers) {
+        handlers.map((handler) => handler({ type }));
+      }
+    }
+  }, 9);
 };
 
 const resolveToUrl = (env: WebWorkerEnvironment, url?: string) =>

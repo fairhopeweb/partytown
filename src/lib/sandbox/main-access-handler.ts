@@ -35,26 +35,28 @@ export const mainAccessHandler = async (
   let immediateSetterMemberNameLen;
   let waitTmr: any;
 
-  if (!winCtxs[$winId$]) {
-    logMain(`Waiting on registering window (${normalizedWinId($winId$)})`);
+  // if (!winCtxs[$winId$]) {
+  //   logMain(`Waiting on registering window (${normalizedWinId($winId$)})`);
 
-    await new Promise<void>((resolve) => {
-      i = 0;
-      waitTmr = setInterval(() => {
-        if (i++ > 999) {
-          accessRsp.$error$ = `Timeout`;
-        }
-        if (winCtxs[$winId$] || accessRsp.$error$) {
-          clearInterval(waitTmr);
-          resolve();
-        }
-      }, 9);
-    });
+  //   await new Promise<void>((resolve) => {
+  //     i = 0;
+  //     waitTmr = setInterval(() => {
+  //       if (i++ > 999) {
+  //         accessRsp.$error$ = `Timeout`;
+  //         clearInterval(waitTmr);
+  //         resolve();
+  //       }
+  //       if (winCtxs[$winId$] && winCtxs[$winId$]!.$isInitialized$) {
+  //         clearInterval(waitTmr);
+  //         resolve();
+  //       }
+  //     }, 9);
+  //   });
 
-    if (accessRsp.$error$) {
-      return accessRsp;
-    }
-  }
+  //   if (accessRsp.$error$) {
+  //     return accessRsp;
+  //   }
+  // }
 
   winCtx = winCtxs[$winId$]!;
 
@@ -62,9 +64,6 @@ export const mainAccessHandler = async (
     // deserialize the data, such as a getter value or function arguments
     data = deserializeFromWorker(worker, accessReq.$data$);
 
-    // if (accessReq.$forwardToWorkerAccess$) {
-    //   // same as continue;
-    // } else
     if (accessType === AccessType.GlobalConstructor) {
       // create a new instance of a global constructor
       setInstanceId(new (winCtx!.$window$ as any)[lastMemberName](...data), instanceId);
@@ -114,22 +113,5 @@ export const mainAccessHandler = async (
     accessRsp.$error$ = String(e.stack || e);
   }
 
-  // if (accessReq.$forwardToWorkerAccess$) {
-  //   return new Promise<MainAccessResponse>((resolve) => {
-  //     const forwardToWinId = accessReq.$contextWinId$ || accessReq.$winId$;
-  //     const otherWinCtx = winCtxs.get(forwardToWinId);
-
-  //     tmr = setTimeout(() => {
-  //       forwardMsgResolves.delete(accessReq.$msgId$);
-  //       accessRsp.$error$ = `Timeout`;
-  //       resolve(accessRsp);
-  //     }, 30000);
-
-  //     forwardMsgResolves.set(accessReq.$msgId$, [resolve, tmr]);
-  //     // otherWinCtx!.$worker$!.postMessage([WorkerMessageType.ForwardWorkerAccessRequest, accessReq]);
-  //   });
-  // } else {
-  //   return accessRsp;
-  // }
   return accessRsp;
 };
