@@ -1,4 +1,4 @@
-import { len, randomId } from '../utils';
+import { randomId } from '../utils';
 import { mainInstanceIdByInstance, mainInstances, winCtxs } from './main-constants';
 import { MainWindowContext, NodeName, PlatformInstanceId } from '../types';
 

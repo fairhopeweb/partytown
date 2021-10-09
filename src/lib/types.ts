@@ -20,14 +20,14 @@ export type MessageFromWorkerToSandbox =
   | [WorkerMessageType.MainDataRequestFromWorker]
   | [WorkerMessageType.InitializedWebWorker]
   | [WorkerMessageType.InitializedEnvironmentScript, WinId, number, string]
-  | [WorkerMessageType.InitializeNextEnvironmentScript, WinId]
+  | [WorkerMessageType.InitializeNextScript, WinId]
   | [WorkerMessageType.ForwardWorkerAccessResponse, WinId, MainAccessResponse]
   | [WorkerMessageType.RunStateHandlers, WinId, number, StateProp];
 
 export type MessageFromSandboxToWorker =
   | [WorkerMessageType.MainDataResponseToWorker, InitWebWorkerData]
   | [WorkerMessageType.InitializeEnvironment, InitializeEnvironmentData]
-  | [WorkerMessageType.InitializeNextEnvironmentScript, InitializeScriptData]
+  | [WorkerMessageType.InitializeNextScript, InitializeScriptData]
   | [WorkerMessageType.RefHandlerCallback, RefHandlerCallbackData]
   | [WorkerMessageType.ForwardWorkerAccessRequest, WinId, MainAccessRequest]
   | [WorkerMessageType.ForwardMainTrigger, ForwardMainTriggerData]
@@ -39,7 +39,7 @@ export const enum WorkerMessageType {
   InitializedWebWorker,
   InitializeEnvironment,
   InitializedEnvironmentScript,
-  InitializeNextEnvironmentScript,
+  InitializeNextScript,
   RefHandlerCallback,
   ForwardWorkerAccessRequest,
   ForwardWorkerAccessResponse,
@@ -72,11 +72,7 @@ export type PostMessageToWorker = (msg: MessageFromSandboxToWorker) => void;
 export interface MainWindowContext {
   $winId$: number;
   $parentWinId$: number;
-  // $cleanupInc$: number;
-  // $config$: PartytownConfig | undefined;
-  // $interfaces$?: InterfaceInfo[];
-  $isInitialized$?: boolean;
-  // $libPath$: string;
+  $isInitialized$?: number;
   $startTime$?: number;
   $url$: string;
   $window$: MainWindow;
@@ -94,7 +90,8 @@ export interface InitWebWorkerData {
 }
 
 export interface InitWebWorkerContext {
-  $isInitialized$?: boolean;
+  $isInitialized$?: number;
+  $isStartupComplete$?: number;
   $postMessage$: (msg: MessageFromWorkerToSandbox) => void;
   $environments$: { [winId: number]: WebWorkerEnvironment };
 }
@@ -108,10 +105,10 @@ export interface WebWorkerEnvironment {
   $location$: Location;
   $globals$: WebWorkerGlobal[];
   $run$: (content: string) => void;
+  $window$: any;
 }
 
 export interface WebWorkerGlobal {
-  // $instanceId$: number;
   $memberName$: string;
   $interfaceType$: InterfaceType;
   $implementation$: any;
@@ -363,17 +360,10 @@ export type PartytownForwardProperty = [
 ];
 
 export interface MainWindow extends Window {
-  frameElement: MainFrameElement | null;
   partytown?: PartytownConfig;
   parent: MainWindow;
   top: MainWindow;
   _ptf?: any[];
-  _ptWin?: (win: MainWindow) => void;
-  _ptId?: number;
-}
-
-export interface MainFrameElement extends HTMLIFrameElement {
-  _ptId?: number;
 }
 
 export const enum NodeName {

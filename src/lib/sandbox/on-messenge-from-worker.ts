@@ -7,6 +7,7 @@ import {
   WorkerMessageType,
 } from '../types';
 import { initializedWorkerScript, readNextScript } from './read-main-scripts';
+import { randomId } from '../utils';
 import { readMainInterfaces } from './read-main-interfaces';
 import { registerWindow } from './main-register-window';
 
@@ -26,12 +27,12 @@ export const onMessageFromWebWorker = (
     worker.postMessage([WorkerMessageType.MainDataResponseToWorker, initWebWorkerData]);
   } else if (msgType === WorkerMessageType.InitializedWebWorker) {
     // web worker has finished initializing and ready to run scripts
-    registerWindow(worker, mainWindow);
+    registerWindow(worker, randomId(), mainWindow);
   } else {
     const $winId$ = msg[1];
     const winCtx = winCtxs.get($winId$)!;
 
-    if (msgType === WorkerMessageType.InitializeNextEnvironmentScript) {
+    if (msgType === WorkerMessageType.InitializeNextScript) {
       // web worker has been initialized with the main data
       readNextScript(worker, winCtx);
     } else if (msgType === WorkerMessageType.InitializedEnvironmentScript) {

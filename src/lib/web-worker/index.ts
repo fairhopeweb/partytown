@@ -13,7 +13,7 @@ const receiveMessageFromSandboxToWorker = (ev: MessageEvent<MessageFromSandboxTo
   const msgType = msg[0];
 
   if (webWorkerCtx.$isInitialized$) {
-    if (msgType === WorkerMessageType.InitializeNextEnvironmentScript) {
+    if (msgType === WorkerMessageType.InitializeNextScript) {
       // message from main to web worker that it should initialize the next script
       initNextScriptsInWebWorker(msg[1]);
     } else if (msgType === WorkerMessageType.RefHandlerCallback) {

@@ -106,7 +106,7 @@
             elm.parentNode.insertBefore(iframe, null);
 
             iframe.contentWindow.document.head.innerHTML = `
-              <style>body { background: cornflowerblue; color: white; text-align: center;}</style>
+              <style>body { background: cornflowerblue; color: white; }</style>
             `;
 
             iframe.contentWindow.document.body.innerHTML = `contentWindow`;
@@ -133,7 +133,7 @@
             elm.className = 'testContentDocument';
           })();
         </script>
-      </li>
+      </li> -->
 
       <li>
         <strong>get contentWindow.someGlobalVar</strong>
@@ -157,7 +157,7 @@
         </script>
       </li>
 
-      <li>
+      <!-- <li>
         <strong>set contentWindow.someGlobalVar</strong>
         <code id="testSetSomeGlobalVar"></code>
         <script type="text/partytown">
@@ -541,7 +541,7 @@
 
           elm.parentNode.insertBefore(iframe, null);
         </script>
-      </li> -->
+      </li>
 
       <li>
         <strong>iframe onload calls parent, no deadlock</strong>
@@ -556,7 +556,6 @@
             script.onload = () => {
               const iframeWin = iframe.contentWindow;
               const fn = iframeWin.fn;
-              console.log('call fn() within', name);
               const result = fn();
             };
             script.src = 'no-deadlock.js';
@@ -564,7 +563,7 @@
           };
           elm.parentNode.insertBefore(iframe, null);
         </script>
-      </li>
+      </li> -->
     </ul>
 
     <hr />

@@ -1,10 +1,11 @@
-import { callMethod, getter, setter } from './worker-proxy';
+import { callMethod } from './worker-proxy';
 import { constructInstance, getElementConstructor } from './worker-constructors';
+import { getEnv, getEnvDocument, getEnvWindow } from './worker-environment';
 import { getPartytownScript } from './worker-exec';
 import { HTMLElement } from './worker-element';
-import { ImmediateSettersKey, webWorkerCtx, WinIdKey } from './worker-constants';
+import { ImmediateSettersKey, WinIdKey } from './worker-constants';
 import { InterfaceType, NodeName, PlatformInstanceId } from '../types';
-import { logWorkerGetter, logWorkerSetter, SCRIPT_TYPE, randomId, toUpper } from '../utils';
+import { SCRIPT_TYPE, randomId, toUpper, debug } from '../utils';
 import { serializeForMain } from './worker-serialization';
 
 export class HTMLDocument extends HTMLElement {
@@ -16,10 +17,6 @@ export class HTMLDocument extends HTMLElement {
       NodeName.Body
     );
   }
-
-  // get compatMode() {
-  //   return webWorkerCtx.$documentCompatMode$;
-  // }
 
   createElement(tagName: string) {
     tagName = toUpper(tagName);
@@ -42,25 +39,21 @@ export class HTMLDocument extends HTMLElement {
     return elm;
   }
 
-  get createEventObject() {
-    // common check we can just avoid
-    return undefined;
+  get currentScript() {
+    const currentScriptId = getEnv(this).$currentScriptId$!;
+    if (currentScriptId > 0) {
+      return constructInstance(
+        InterfaceType.Element,
+        currentScriptId,
+        this[WinIdKey],
+        NodeName.Script
+      );
+    }
+    return null;
   }
 
-  // get currentScript() {
-  //   if (webWorkerCtx.$currentScriptId$ > 0) {
-  //     return constructInstance(
-  //       InterfaceType.Element,
-  //       webWorkerCtx.$currentScriptId$,
-  //       this[WinIdKey],
-  //       NodeName.Script
-  //     );
-  //   }
-  //   return null;
-  // }
-
   get defaultView() {
-    return self;
+    return getEnvWindow(this);
   }
 
   get documentElement() {
@@ -141,9 +134,11 @@ export class HTMLDocument extends HTMLElement {
 
 export class WorkerDocumentElementChild extends HTMLElement {
   get parentElement() {
-    return document.documentElement;
+    return this.parentNode;
   }
   get parentNode() {
-    return document.documentElement;
+    return getEnvDocument(this).documentElement;
   }
 }
+
+let winIds = 1;

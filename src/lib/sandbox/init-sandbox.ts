@@ -1,4 +1,5 @@
-import { debug, logMain } from '../utils';
+import { debug, logMain, PT_IFRAME_APPENDED } from '../utils';
+import { getAndSetInstanceId } from './main-instances';
 import { mainAccessHandler } from './main-access-handler';
 import type {
   MainWindow,
@@ -7,6 +8,7 @@ import type {
   PartytownWebWorker,
 } from '../types';
 import { onMessageFromWebWorker } from './on-messenge-from-worker';
+import { registerWindow } from './main-register-window';
 import syncCreateMessenger from '@sync-create-messenger';
 import WebWorkerBlob from '@web-worker-blob';
 import WebWorkerUrl from '@web-worker-url';
@@ -44,5 +46,13 @@ export const initSandbox = async (sandboxWindow: any) => {
       logMain(`Created web worker`);
       worker.onerror = (ev) => console.error(`Web Worker Error`, ev);
     }
+
+    mainWindow.addEventListener<any>(PT_IFRAME_APPENDED, (ev: CustomEvent) => {
+      const win: MainWindow = ev.detail;
+      const winId = getAndSetInstanceId(win.frameElement);
+      if (winId > -1) {
+        registerWindow(worker, winId, win);
+      }
+    });
   }
 };

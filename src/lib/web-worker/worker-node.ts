@@ -1,5 +1,6 @@
 import { applyBeforeSyncSetters, callMethod } from './worker-proxy';
 import { EMPTY_ARRAY } from '../utils';
+import { getEnvDocument } from './worker-environment';
 import type { HTMLDocument } from './worker-document';
 import { insertIframe } from './worker-exec';
 import { InterfaceTypeKey, NodeNameKey, webWorkerCtx, WinIdKey } from './worker-constants';
@@ -12,7 +13,7 @@ export class Node extends WorkerProxy {
   }
 
   get ownerDocument(): HTMLDocument {
-    return document as any;
+    return getEnvDocument(this);
   }
 
   get href() {
@@ -28,10 +29,7 @@ export class Node extends WorkerProxy {
     if (newNode[NodeNameKey] === NodeName.IFrame) {
       insertIframe(newNode);
     } else if (newNode[NodeNameKey] === NodeName.Script) {
-      webWorkerCtx.$postMessage$([
-        WorkerMessageType.InitializeNextEnvironmentScript,
-        this[WinIdKey],
-      ]);
+      webWorkerCtx.$postMessage$([WorkerMessageType.InitializeNextScript, this[WinIdKey]]);
     }
 
     return newNode;

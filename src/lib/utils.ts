@@ -45,11 +45,11 @@ export const logWorker = (msg: string, winId = -1) => {
       let prefix: string;
       let color: string;
       if (winId > -1) {
-        prefix = `Worker (${winId}) 🎉`;
-        color = `#3498db`;
+        prefix = `Worker (${normalizedWinId(winId)}) 🎉`;
+        color = winColor(winId);
       } else {
         prefix = self.name;
-        color = `#006404`;
+        color = `#9844bf`;
       }
 
       console.debug.apply(console, [
@@ -59,6 +59,20 @@ export const logWorker = (msg: string, winId = -1) => {
       ]);
     } catch (e) {}
   }
+};
+
+const winIds: number[] = [];
+export const normalizedWinId = (winId: number) => {
+  if (!winIds.includes(winId)) {
+    winIds.push(winId);
+  }
+  return winIds.indexOf(winId) + 1;
+};
+
+const winColor = (winId: number) => {
+  const colors = ['#00309e', '#ea3655', '#eea727'];
+  const index = normalizedWinId(winId) - 1;
+  return colors[index] || colors[colors.length - 1];
 };
 
 export const logWorkerGetter = (target: any, memberPath: string[], rtnValue: any) => {
@@ -250,9 +264,8 @@ if (debug) {
   Object.freeze(EMPTY_ARRAY);
 }
 
-export const PT_INITIALIZED_EVENT = `ptinit`;
-
-export const TOP_WIN_ID = 1;
+export const PT_INITIALIZED_EVENT = `pt0`;
+export const PT_IFRAME_APPENDED = `pt1`;
 
 export const randomId = () => Math.round(Math.random() * 9999999999 + PlatformInstanceId.body);
 

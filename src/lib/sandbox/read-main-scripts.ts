@@ -1,4 +1,4 @@
-import { debug, logMain, nextTick, PT_INITIALIZED_EVENT, SCRIPT_TYPE } from '../utils';
+import { debug, logMain, normalizedWinId, PT_INITIALIZED_EVENT, SCRIPT_TYPE } from '../utils';
 import { getAndSetInstanceId } from './main-instances';
 import {
   MainWindowContext,
@@ -25,7 +25,7 @@ export const readNextScript = (worker: PartytownWebWorker, winCtx: MainWindowCon
       $instanceId$,
     };
 
-    scriptElm.dataset.ptId = $winId$ + '.' + $instanceId$;
+    scriptElm.dataset.ptId = $instanceId$ as any;
 
     if (scriptElm.src) {
       scriptData.$url$ = scriptElm.src;
@@ -33,14 +33,10 @@ export const readNextScript = (worker: PartytownWebWorker, winCtx: MainWindowCon
       scriptData.$content$ = scriptElm.innerHTML;
     }
 
-    worker.postMessage([WorkerMessageType.InitializeNextEnvironmentScript, scriptData]);
+    worker.postMessage([WorkerMessageType.InitializeNextScript, scriptData]);
   } else if (!winCtx.$isInitialized$) {
     // finished startup
-    winCtx.$isInitialized$ = true;
-
-    if (win.frameElement) {
-      win.frameElement._ptId = $winId$;
-    }
+    winCtx.$isInitialized$ = 1;
 
     mainForwardTrigger(worker, $winId$, win);
 
@@ -48,7 +44,7 @@ export const readNextScript = (worker: PartytownWebWorker, winCtx: MainWindowCon
 
     if (debug) {
       logMain(
-        `Executed window (${$winId$}) Partytown scripts in ${(
+        `Executed window (${normalizedWinId($winId$)}) environment scripts in ${(
           performance.now() - winCtx.$startTime$!
         ).toFixed(1)}ms 🎉`
       );
@@ -63,10 +59,8 @@ export const initializedWorkerScript = (
   errorMsg: string,
   script?: HTMLScriptElement | null
 ) => {
-  const doc = winCtx.$window$.document;
-
-  script = doc.querySelector<HTMLScriptElement>(
-    '[data-pt-id="' + winCtx.$winId$ + '.' + instanceId + '"]'
+  script = winCtx.$window$.document.querySelector<HTMLScriptElement>(
+    '[data-pt-id="' + instanceId + '"]'
   );
 
   if (script) {

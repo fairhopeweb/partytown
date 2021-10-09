@@ -12,7 +12,7 @@ test('window', async ({ page }) => {
   await expect(testHTMLAnchorElementName).toHaveText('HTMLAnchorElement');
 
   const testName = page.locator('#testName');
-  await expect(testName).toHaveText('Partytown 🎉 (1)');
+  await expect(testName).toContainText('Partytown 🎉');
 
   const testNameEquals = page.locator('#testNameEquals');
   await expect(testNameEquals).toHaveText('true');

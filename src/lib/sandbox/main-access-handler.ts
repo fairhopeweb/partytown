@@ -6,8 +6,9 @@ import {
   PartytownWebWorker,
 } from '../types';
 import { deserializeFromWorker, serializeForWorker } from './main-serialization';
-import { EMPTY_ARRAY, isPromise, len } from '../utils';
+import { EMPTY_ARRAY, isPromise, len, logMain, normalizedWinId } from '../utils';
 import { getInstance, setInstanceId } from './main-instances';
+import { winCtxs } from './main-constants';
 
 export const mainAccessHandler = async (
   worker: PartytownWebWorker,
@@ -29,11 +30,31 @@ export const mainAccessHandler = async (
   let rtnValue: any;
   let data: any;
   let i: number;
-  let count: number;
-  let tmr: any;
   let immediateSetterTarget: any;
   let immediateSetterMemberPath;
   let immediateSetterMemberNameLen;
+  let waitTmr: any;
+
+  if (!winCtxs.has($winId$)) {
+    logMain(`Waiting on registering window (${normalizedWinId($winId$)})`);
+
+    await new Promise<void>((resolve) => {
+      i = 0;
+      waitTmr = setInterval(() => {
+        if (i++ > 999) {
+          accessRsp.$error$ = `Timeout`;
+        }
+        if (winCtxs.has($winId$) || accessRsp.$error$) {
+          clearInterval(waitTmr);
+          resolve();
+        }
+      }, 9);
+    });
+
+    if (accessRsp.$error$) {
+      return accessRsp;
+    }
+  }
 
   try {
     // deserialize the data, such as a getter value or function arguments
@@ -54,18 +75,6 @@ export const mainAccessHandler = async (
         }
 
         if (accessType === AccessType.Get) {
-          if (lastMemberName === '_ptId') {
-            await new Promise<void>((resolve) => {
-              count = 0;
-              tmr = setInterval(() => {
-                if (isMemberInInstance(instance, memberPath) || count > 99) {
-                  clearInterval(tmr);
-                  resolve();
-                }
-                count++;
-              }, 40);
-            });
-          }
           rtnValue = instance[lastMemberName];
         } else if (accessType === AccessType.Set) {
           instance[lastMemberName] = data;
@@ -122,5 +131,3 @@ export const mainAccessHandler = async (
   // }
   return accessRsp;
 };
-
-const isMemberInInstance = (instance: any, memberPath: string[]) => memberPath[0] in instance;

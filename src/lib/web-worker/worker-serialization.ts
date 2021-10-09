@@ -148,7 +148,8 @@ export const callWorkerRefHandler = (
   { $winId$, $instanceId$, $refId$, $thisArg$, $args$ }: RefHandlerCallbackData,
   workerRef?: RefHandler
 ) => {
-  workerRef = webWorkerRefsByRefId[$refId$];
+  workerRef = webWorkerRefsByRefId.get($refId$);
+
   if (workerRef) {
     try {
       const thisArg = deserializeFromMain($winId$, $instanceId$, [], $thisArg$);
@@ -163,18 +164,20 @@ export const callWorkerRefHandler = (
 const deserializeRefFromMain = (
   instanceId: number,
   memberPath: string[],
-  { $winId$, $refId$ }: SerializedRefTransferData
+  { $winId$, $refId$ }: SerializedRefTransferData,
+  workerRef?: RefHandler
 ) => {
-  let workerRefHandler = webWorkerRefsByRefId[$refId$];
+  workerRef = webWorkerRefsByRefId.get($refId$);
 
-  if (!workerRefHandler) {
-    webWorkerRefsByRefId[$refId$] = workerRefHandler = function (this: any, ...args: any[]) {
+  if (!workerRef) {
+    workerRef = function (this: any, ...args: any[]) {
       const instance = constructInstance(InterfaceType.Window, instanceId, $winId$);
       return callMethod(instance, memberPath, args);
     };
 
-    webWorkerRefIdsByRef.set(workerRefHandler, $refId$);
+    webWorkerRefsByRefId.set($refId$, workerRef);
+    webWorkerRefIdsByRef.set(workerRef, $refId$);
   }
 
-  return workerRefHandler;
+  return workerRef;
 };

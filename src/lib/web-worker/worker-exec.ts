@@ -10,6 +10,7 @@ import { getInstanceStateValue, getStateValue, setStateValue } from './worker-st
 import type { HTMLElement } from './worker-element';
 import type { Node } from './worker-node';
 import { webWorkerCtx } from './worker-constants';
+import { getEnv } from './worker-environment';
 
 export const initNextScriptsInWebWorker = async (initScript: InitializeScriptData) => {
   let winId = initScript.$winId$;
@@ -22,36 +23,42 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
 
   if (scriptSrc) {
     try {
-      scriptSrc = resolveUrl(env, scriptSrc) + '';
+      scriptSrc = resolveUrl(env, scriptSrc);
       setStateValue(instanceId, StateProp.url, scriptSrc);
 
       if (debug && webWorkerCtx.$config$.logScriptExecution) {
-        logWorker(`Execute script[data-pt-id="${winId}.${instanceId}"], src: ${scriptSrc}`, winId);
+        logWorker(`Execute script[data-pt-id="${instanceId}"], src: ${scriptSrc}`, winId);
       }
 
       rsp = await fetch(scriptSrc);
-      scriptContent = await rsp.text();
+      if (rsp.ok) {
+        scriptContent = await rsp.text();
 
-      env.$currentScriptId$ = instanceId;
-      env.$currentScriptUrl$ = scriptSrc;
-      env.$run$(scriptContent);
-      runStateLoadHandlers(instanceId, StateProp.loadHandlers);
+        env.$currentScriptId$ = instanceId;
+        env.$currentScriptUrl$ = scriptSrc;
+        env.$run$(scriptContent);
+        runStateLoadHandlers(instanceId, StateProp.loadHandlers);
+      } else {
+        console.error(rsp.status, 'url:', scriptSrc);
+        errorMsg = rsp.statusText;
+        runStateLoadHandlers(instanceId, StateProp.errorHandlers);
+      }
     } catch (urlError: any) {
-      console.error(`Window (${winId})`, urlError, 'url:', scriptSrc);
+      console.error('url:', scriptSrc, urlError);
       errorMsg = String(urlError.stack || urlError) + '';
       runStateLoadHandlers(instanceId, StateProp.errorHandlers);
     }
   } else if (scriptContent) {
     try {
       if (debug && webWorkerCtx.$config$.logScriptExecution) {
-        logWorker(`Execute script[data-pt-id="${winId}.${instanceId}"]`, winId);
+        logWorker(`Execute script[data-pt-id="${instanceId}"]`, winId);
       }
 
       env.$currentScriptId$ = instanceId;
       env.$currentScriptUrl$ = '';
       env.$run$(scriptContent);
     } catch (contentError: any) {
-      console.error(`Window (${winId})`, contentError, '\n' + scriptContent);
+      console.error(scriptContent, contentError);
       errorMsg = String(contentError.stack || contentError) + '';
     }
   }
@@ -84,11 +91,13 @@ export const insertIframe = (iframe: Node) => {
   }
 };
 
-export const resolveUrl = (env: WebWorkerEnvironment, url?: string) =>
+const resolveToUrl = (env: WebWorkerEnvironment, url?: string) =>
   new URL(url || '', env.$location$ + '');
 
-export const getUrl = (env: WebWorkerEnvironment, elm: HTMLElement) =>
-  resolveUrl(env, getInstanceStateValue(elm, StateProp.href));
+export const resolveUrl = (env: WebWorkerEnvironment, url?: string) => resolveToUrl(env, url) + '';
+
+export const getUrl = (elm: HTMLElement) =>
+  resolveToUrl(getEnv(elm), getInstanceStateValue(elm, StateProp.href));
 
 export const updateIframeContent = (url: string, html: string) =>
   `<base href="${url}">` +

@@ -22,10 +22,6 @@ export class Window {
         target[propName] = value;
         return true;
       },
-      // has(target, propName) {
-      //   console.log('has', propName);
-      //   return true;
-      // },
     });
   }
 }

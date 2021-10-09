@@ -1,3 +1,4 @@
+import { debug, logMain, normalizedWinId } from '../utils';
 import {
   InitializeEnvironmentData,
   MainWindow,
@@ -6,47 +7,44 @@ import {
   PlatformInstanceId,
   WorkerMessageType,
 } from '../types';
-import { debug, logMain, TOP_WIN_ID } from '../utils';
-import { winCtxs, windows } from './main-constants';
 import { setInstanceId } from './main-instances';
-import { readNextScript } from './read-main-scripts';
+import { winCtxs, windowIds } from './main-constants';
 
-let winIds = TOP_WIN_ID;
-
-export const registerWindow = (worker: PartytownWebWorker, win: MainWindow) => {
-  if (!windows.has(win)) {
-    windows.add(win);
-
-    const $winId$ = (win._ptId = winIds++);
-    const $url$ = win.document.baseURI;
+export const registerWindow = (
+  worker: PartytownWebWorker,
+  $winId$: number,
+  $window$: MainWindow
+) => {
+  if (!windowIds.has($window$)) {
+    const doc = $window$.document;
+    const $url$ = doc.baseURI;
 
     const initEnvData: InitializeEnvironmentData = { $winId$, $url$ };
 
-    const sendInit = () =>
+    const sendInitEnvironment = () =>
       worker.postMessage([WorkerMessageType.InitializeEnvironment, initEnvData]);
 
-    const doc = win.document;
-    const parentWin = win.parent;
     const winCtx: MainWindowContext = {
       $winId$,
-      $parentWinId$: parentWin._ptId!,
+      $parentWinId$: windowIds.get($window$.parent)!,
       $url$,
-      $window$: win,
+      $window$,
     };
     if (debug) {
       winCtx.$startTime$ = performance.now();
     }
 
-    winCtxs.set(winCtx.$winId$, winCtx);
+    windowIds.set($window$, $winId$);
+    winCtxs.set($winId$, winCtx);
 
-    setInstanceId(win, PlatformInstanceId.window);
+    setInstanceId($window$, PlatformInstanceId.window);
 
-    logMain(`Registered main window (${winCtx.$winId$})`);
+    logMain(`Registered window (${normalizedWinId($winId$)})`);
 
     if (doc.readyState === 'complete') {
-      sendInit();
+      sendInitEnvironment();
     } else {
-      win.addEventListener('load', sendInit);
+      $window$.addEventListener('load', sendInitEnvironment);
     }
   }
 };

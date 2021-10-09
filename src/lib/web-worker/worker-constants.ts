@@ -7,7 +7,7 @@ export const NodeNameKey = Symbol();
 export const ProxyKey = Symbol();
 export const ImmediateSettersKey = Symbol();
 
-export const webWorkerRefsByRefId: { [refId: number]: RefHandler | undefined } = {};
+export const webWorkerRefsByRefId = new Map<number, RefHandler>();
 export const webWorkerRefIdsByRef = new WeakMap<RefHandler, number>();
 
 export const webWorkerState: StateMap = {};

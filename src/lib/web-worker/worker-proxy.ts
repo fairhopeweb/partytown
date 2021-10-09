@@ -64,9 +64,6 @@ const syncMessage = (
   const rtnValue = deserializeFromMain($winId$, $instanceId$, $memberPath$, accessRsp.$rtnValue$!);
 
   if (accessRsp.$error$) {
-    if (debug) {
-      console.error(self.name, JSON.stringify(accessReq));
-    }
     if (isPromise) {
       return Promise.reject(accessRsp.$error$);
     }

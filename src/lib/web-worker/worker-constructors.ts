@@ -1,10 +1,12 @@
 import { InterfaceType, NodeName } from '../types';
-import { HTMLDocument } from './worker-document';
+import { HTMLDocument, WorkerDocumentElementChild } from './worker-document';
 import { HTMLElement } from './worker-element';
 import { Node } from './worker-node';
 import { toUpper } from '../utils';
-import { Window } from './worker-iframe';
+import { HTMLIFrameElement, Window } from './worker-iframe';
 import { WorkerProxy } from './worker-proxy-constructor';
+import { HTMLAnchorElement } from './worker-anchor';
+import { HTMLScriptElement } from './worker-script';
 
 export const constructInstance = (
   interfaceType: InterfaceType,
@@ -61,4 +63,25 @@ export const getTagNameFromConstructor = (t: string) => {
   } else {
     return t;
   }
+};
+
+export const initElementConstructors = (gblThis: any, htmlCstrName: string[]) => {
+  htmlCstrName.forEach((htmlCstrName) => {
+    if (!(htmlCstrName in gblThis)) {
+      const HTMLCstr = Object.defineProperty(class extends HTMLElement {}, 'name', {
+        value: htmlCstrName,
+      });
+      const tagName = getTagNameFromConstructor(htmlCstrName);
+      elementConstructors[tagName] = gblThis[htmlCstrName] = HTMLCstr;
+    }
+  });
+
+  gblThis.Document = HTMLDocument;
+  gblThis.HTMLElement = gblThis.Element = HTMLElement;
+  gblThis.Node = Node;
+
+  elementConstructors.A = HTMLAnchorElement;
+  elementConstructors.BODY = elementConstructors.HEAD = WorkerDocumentElementChild;
+  elementConstructors.IFRAME = HTMLIFrameElement;
+  elementConstructors.SCRIPT = HTMLScriptElement;
 };

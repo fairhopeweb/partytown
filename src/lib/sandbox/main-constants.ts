@@ -4,5 +4,5 @@ export const forwardMsgResolves = new Map<number, [(accessRsp: MainAccessRespons
 export const mainInstanceIdByInstance = new WeakMap<any, number>();
 export const mainInstances: [number, any][] = [];
 export const winCtxs = new Map<WinId, MainWindowContext>();
-export const windows = new WeakSet<MainWindow>();
+export const windowIds = new WeakMap<MainWindow, number>();
 export const mainRefs = new Map<number, Function>();
