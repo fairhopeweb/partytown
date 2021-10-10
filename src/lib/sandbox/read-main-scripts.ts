@@ -35,7 +35,7 @@ export const readNextScript = (worker: PartytownWebWorker, winCtx: MainWindowCon
 
     worker.postMessage([WorkerMessageType.InitializeNextScript, scriptData]);
   } else if (!winCtx.$isInitialized$) {
-    // finished startup
+    // finished environment initialization
     winCtx.$isInitialized$ = 1;
 
     mainForwardTrigger(worker, $winId$, win);
@@ -44,11 +44,13 @@ export const readNextScript = (worker: PartytownWebWorker, winCtx: MainWindowCon
 
     if (debug) {
       logMain(
-        `Executed window (${normalizedWinId($winId$)}) environment scripts in ${(
+        `Executed window ${normalizedWinId($winId$)} environment scripts in ${(
           performance.now() - winCtx.$startTime$!
         ).toFixed(1)}ms 🎉`
       );
     }
+
+    worker.postMessage([WorkerMessageType.InitializedEnvironment, $winId$]);
   }
 };
 

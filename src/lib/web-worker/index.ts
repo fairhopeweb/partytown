@@ -1,10 +1,10 @@
-import { debug, logWorker, nextTick } from '../utils';
+import { callWorkerRefHandler } from './worker-serialization';
+import { createEnvironment } from './worker-environment';
+import { debug, logWorker, nextTick, normalizedWinId } from '../utils';
+import { initNextScriptsInWebWorker } from './worker-exec';
 import { initWebWorker } from './init-web-worker';
 import { InitWebWorkerData, MessageFromSandboxToWorker, WorkerMessageType } from '../types';
-import { webWorkerCtx } from './worker-constants';
-import { createEnvironment } from './worker-environment';
-import { initNextScriptsInWebWorker } from './worker-exec';
-import { callWorkerRefHandler } from './worker-serialization';
+import { environments, webWorkerCtx } from './worker-constants';
 
 const queuedEvents: MessageEvent<MessageFromSandboxToWorker>[] = [];
 
@@ -19,10 +19,6 @@ const receiveMessageFromSandboxToWorker = (ev: MessageEvent<MessageFromSandboxTo
     } else if (msgType === WorkerMessageType.RefHandlerCallback) {
       // main has called a worker ref handler
       callWorkerRefHandler(msg[1]);
-    } else if (msgType === WorkerMessageType.ForwardWorkerAccessRequest) {
-      // message forwarded from another window, like the main window accessing data from an iframe
-      console.error('workerAccessHandler');
-      // workerAccessHandler(msgData1 as MainAccessRequest);
     } else if (msgType === WorkerMessageType.ForwardMainTrigger) {
       console.error('workerForwardedTriggerHandle');
       // workerForwardedTriggerHandle(msgData1 as ForwardMainTriggerData);
@@ -31,6 +27,9 @@ const receiveMessageFromSandboxToWorker = (ev: MessageEvent<MessageFromSandboxTo
       // runStateHandlers(msgData1 as number, msgData2 as any);
     } else if (msgType === WorkerMessageType.InitializeEnvironment) {
       createEnvironment(self, msg[1]);
+    } else if (msgType === WorkerMessageType.InitializedEnvironment) {
+      environments[msg[1]].$isInitialized$ = 1;
+      logWorker(`Initialized window ${normalizedWinId(msg[1])} environment (${msg[1]})`, msg[1]);
     }
   } else if (msgType === WorkerMessageType.MainDataResponseToWorker) {
     // initialize the web worker with the received the main data

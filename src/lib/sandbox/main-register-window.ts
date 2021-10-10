@@ -38,7 +38,7 @@ export const registerWindow = (
 
     setInstanceId($window$, PlatformInstanceId.window);
 
-    logMain(`Registered window ${normalizedWinId($winId$)}, (${$winId$})`);
+    logMain(`Registered window ${normalizedWinId($winId$)} (${$winId$})`);
 
     if (doc.readyState === 'complete') {
       sendInitEnvironment();

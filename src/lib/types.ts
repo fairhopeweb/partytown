@@ -21,15 +21,14 @@ export type MessageFromWorkerToSandbox =
   | [WorkerMessageType.InitializedWebWorker]
   | [WorkerMessageType.InitializedEnvironmentScript, WinId, number, string]
   | [WorkerMessageType.InitializeNextScript, WinId]
-  | [WorkerMessageType.ForwardWorkerAccessResponse, WinId, MainAccessResponse]
   | [WorkerMessageType.RunStateHandlers, WinId, number, StateProp];
 
 export type MessageFromSandboxToWorker =
   | [WorkerMessageType.MainDataResponseToWorker, InitWebWorkerData]
   | [WorkerMessageType.InitializeEnvironment, InitializeEnvironmentData]
+  | [WorkerMessageType.InitializedEnvironment, WinId]
   | [WorkerMessageType.InitializeNextScript, InitializeScriptData]
   | [WorkerMessageType.RefHandlerCallback, RefHandlerCallbackData]
-  | [WorkerMessageType.ForwardWorkerAccessRequest, WinId, MainAccessRequest]
   | [WorkerMessageType.ForwardMainTrigger, ForwardMainTriggerData]
   | [WorkerMessageType.RunStateHandlers, WinId, number, StateProp];
 
@@ -38,11 +37,10 @@ export const enum WorkerMessageType {
   MainDataResponseToWorker,
   InitializedWebWorker,
   InitializeEnvironment,
+  InitializedEnvironment,
   InitializedEnvironmentScript,
   InitializeNextScript,
   RefHandlerCallback,
-  ForwardWorkerAccessRequest,
-  ForwardWorkerAccessResponse,
   ForwardMainTrigger,
   RunStateHandlers,
 }
@@ -104,6 +102,7 @@ export interface WebWorkerEnvironment {
   $globals$: WebWorkerGlobal[];
   $run$: (content: string) => void;
   $window$: any;
+  $isInitialized$?: number;
 }
 
 export interface WebWorkerGlobal {
@@ -146,6 +145,11 @@ export const enum InterfaceType {
   NamedNodeMap = 21,
   Screen = 22,
   Storage = 23,
+}
+
+export const enum TargetSetterType {
+  SetToMainProxy,
+  SetToTarget,
 }
 
 export const enum PlatformInstanceId {

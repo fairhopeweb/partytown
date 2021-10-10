@@ -1,24 +1,20 @@
 import { callMethod, createGlobalConstructorProxy, proxy } from './worker-proxy';
 import { constructInstance } from './worker-constructors';
 import { createImageConstructor } from './worker-image';
-import { environments, webWorkerCtx, WinIdKey } from './worker-constants';
+import { environments, TargetSetterKey, webWorkerCtx, WinIdKey } from './worker-constants';
 import {
   InitializeEnvironmentData,
   InterfaceType,
   PlatformInstanceId,
+  TargetSetterType,
   WebWorkerGlobal,
   WorkerMessageType,
 } from '../types';
 import { Location } from './worker-location';
-import { logWorker } from '../utils';
-import { Window } from './worker-window';
+import { logWorker, normalizedWinId } from '../utils';
 
 export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironmentData) => {
   const $winId$ = initEnvData.$winId$;
-
-  const $window$ = new Window(glbThis, $winId$);
-
-  const $location$ = new Location(initEnvData.$url$);
 
   const interfaces = webWorkerCtx.$interfaces$;
 
@@ -29,6 +25,12 @@ export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironme
   const winMembersTypeInfo = winInterface[2];
 
   const winNames = 'window,self,top,parent,globalThis'.split(',');
+
+  const $location$ = new Location(initEnvData.$url$);
+
+  const $window$ = constructInstance(InterfaceType.Window, PlatformInstanceId.window, $winId$);
+
+  $window$[TargetSetterKey] = TargetSetterType.SetToTarget;
 
   const $globals$: WebWorkerGlobal[] = winNames.map(($memberName$) => ({
     $interfaceType$: InterfaceType.Window,
@@ -49,7 +51,6 @@ export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironme
     if (isValidInterface && isValidGlobal($memberName$)) {
       // this global doesn't already exist in the worker globalThis
       // and the interface type isn't a DOM Node or Window object
-
       const $implementation$ = (($window$ as any)[$memberName$] = isFunctionInterface
         ? (...args: any[]) => callMethod($window$, [$memberName$], args)
         : isDocument
@@ -112,9 +113,11 @@ export const createEnvironment = (glbThis: any, initEnvData: InitializeEnvironme
     runInEnv.apply($window$, globalImplementations);
   };
 
+  $window$[TargetSetterKey] = TargetSetterType.SetToMainProxy;
+
   environments[$winId$] = { $winId$, $globals$, $location$, $window$, $run$ };
 
-  logWorker(`Initialized window environment (${$winId$})`, $winId$);
+  logWorker(`Created window ${normalizedWinId($winId$)} environment (${$winId$})`, $winId$);
 
   webWorkerCtx.$postMessage$([WorkerMessageType.InitializeNextScript, $winId$]);
 };

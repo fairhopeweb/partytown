@@ -51,7 +51,15 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
   } else if (scriptContent) {
     try {
       if (debug && webWorkerCtx.$config$.logScriptExecution) {
-        logWorker(`Execute script[data-ptid="${instanceId}"]`, winId);
+        logWorker(
+          `Execute script[data-ptid="${instanceId}"] ${scriptContent
+            .split('\n')
+            .map((l) => l.trim())
+            .join(' ')
+            .trim()
+            .substr(0, 50)}...`,
+          winId
+        );
       }
 
       env.$currentScriptId$ = instanceId;
@@ -84,16 +92,11 @@ const runStateLoadHandlers = (instanceId: number, type: StateProp, handlers?: Ev
 export const insertIframe = (iframe: Node) => {
   // and iframe element's instanceId is also
   // the winId of it's contentWindow
-  let winId = iframe[InstanceIdKey];
-
   let i = 0;
-  let tmr = setInterval(() => {
-    if (i++ > 9999) {
-      clearInterval(tmr);
-      console.error(`Timeout`);
-    } else if (environments[winId]) {
-      clearInterval(tmr);
+  const winId = iframe[InstanceIdKey];
 
+  const callback = () => {
+    if (environments[winId] && environments[winId].$isInitialized$) {
       let type = getInstanceStateValue<StateProp>(iframe, StateProp.loadError)
         ? StateProp.errorHandlers
         : StateProp.loadHandlers;
@@ -102,8 +105,18 @@ export const insertIframe = (iframe: Node) => {
       if (handlers) {
         handlers.map((handler) => handler({ type }));
       }
+    } else if (i++ > 2000) {
+      let errorHandlers = getInstanceStateValue<EventHandler[]>(iframe, StateProp.errorHandlers);
+      if (errorHandlers) {
+        errorHandlers.map((handler) => handler({ type: StateProp.errorHandlers }));
+      }
+      console.error(`Timeout`);
+    } else {
+      setTimeout(callback, 9);
     }
-  }, 9);
+  };
+
+  callback();
 };
 
 const resolveToUrl = (env: WebWorkerEnvironment, url?: string) =>

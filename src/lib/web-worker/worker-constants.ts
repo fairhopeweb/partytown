@@ -6,6 +6,7 @@ export const InterfaceTypeKey = Symbol();
 export const NodeNameKey = Symbol();
 export const ProxyKey = Symbol();
 export const ImmediateSettersKey = Symbol();
+export const TargetSetterKey = Symbol();
 
 export const webWorkerRefsByRefId: { [refId: number]: RefHandler } = {};
 export const webWorkerRefIdsByRef = new WeakMap<RefHandler, number>();

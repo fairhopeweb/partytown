@@ -143,7 +143,6 @@
             const elm = document.getElementById('testGetSomeGlobalVar');
             const iframe = document.createElement('iframe');
             iframe.addEventListener('load', function (ev) {
-              debugger;
               const iframeWindow = iframe.contentWindow;
               const mph = iframeWindow.someGlobalVar.mph;
               const iframeDocument = iframeWindow.document;
@@ -158,7 +157,7 @@
         </script>
       </li>
 
-      <!-- <li>
+      <li>
         <strong>set contentWindow.someGlobalVar</strong>
         <code id="testSetSomeGlobalVar"></code>
         <script type="text/partytown">
@@ -178,7 +177,7 @@
         </script>
       </li>
 
-      <li>
+      <!-- <li>
         <strong>script.src set, window.someWindowVar</strong>
         <code id="testSetSomeWindowVar"></code>
         <script type="text/partytown">

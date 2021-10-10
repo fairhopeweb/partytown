@@ -1,6 +1,4 @@
-import { forwardMsgResolves, winCtxs } from './main-constants';
 import {
-  MainAccessResponse,
   MainWindow,
   MessageFromWorkerToSandbox,
   PartytownWebWorker,
@@ -10,6 +8,7 @@ import { initializedWorkerScript, readNextScript } from './read-main-scripts';
 import { randomId } from '../utils';
 import { readMainInterfaces } from './read-main-interfaces';
 import { registerWindow } from './main-register-window';
+import { winCtxs } from './main-constants';
 
 export const onMessageFromWebWorker = (
   worker: PartytownWebWorker,
@@ -39,17 +38,6 @@ export const onMessageFromWebWorker = (
       // web worker has finished initializing the script, and has another one to do
       // doing this postMessage back-and-forth so we don't have long running tasks
       initializedWorkerScript(worker, winCtx, msg[2] as number, msg[3] as string);
-    } else if (msgType === WorkerMessageType.ForwardWorkerAccessResponse) {
-      const accessRsp = msg[2] as MainAccessResponse;
-
-      const forwardMsgResolveData = forwardMsgResolves.get(accessRsp.$msgId$);
-      if (forwardMsgResolveData) {
-        clearTimeout(forwardMsgResolveData[1]);
-        forwardMsgResolves.delete(accessRsp.$msgId$);
-
-        forwardMsgResolveData[0](accessRsp);
-        readNextScript(worker, winCtx);
-      }
     }
   }
 };

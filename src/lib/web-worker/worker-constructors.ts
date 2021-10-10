@@ -1,12 +1,12 @@
-import { InterfaceType, NodeName } from '../types';
+import { HTMLAnchorElement } from './worker-anchor';
 import { HTMLDocument, WorkerDocumentElementChild } from './worker-document';
 import { HTMLElement } from './worker-element';
+import { HTMLIFrameElement, Window } from './worker-iframe';
+import { HTMLScriptElement } from './worker-script';
+import { InterfaceType, NodeName } from '../types';
 import { Node } from './worker-node';
 import { toUpper } from '../utils';
-import { HTMLIFrameElement, Window } from './worker-iframe';
 import { WorkerProxy } from './worker-proxy-constructor';
-import { HTMLAnchorElement } from './worker-anchor';
-import { HTMLScriptElement } from './worker-script';
 
 export const constructInstance = (
   interfaceType: InterfaceType,

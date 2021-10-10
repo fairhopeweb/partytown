@@ -7,6 +7,7 @@ import {
   NodeName,
   PlatformInstanceId,
   SerializedTransfer,
+  TargetSetterType,
 } from '../types';
 import { constructInstance } from './worker-constructors';
 import {
@@ -26,6 +27,7 @@ import {
   InterfaceTypeKey,
   NodeNameKey,
   ProxyKey,
+  TargetSetterKey,
   webWorkerCtx,
   WinIdKey,
 } from './worker-constants';
@@ -254,6 +256,10 @@ export const proxy = <T = any>(
         return Reflect.get(target, propKey);
       }
 
+      if (Reflect.has(self, propKey)) {
+        return Reflect.get(self, propKey);
+      }
+
       const memberPath = [...initMemberPath, String(propKey)];
       const complexProp = createComplexMember(interfaceType, target, memberPath);
       if (complexProp) {
@@ -264,7 +270,7 @@ export const proxy = <T = any>(
     },
 
     set(target, propKey, value, receiver) {
-      if (Reflect.has(target, propKey)) {
+      if (Reflect.has(target, propKey) || target[TargetSetterKey]) {
         Reflect.set(target, propKey, value, receiver);
       } else {
         setter(target, [...initMemberPath, String(propKey)], value);

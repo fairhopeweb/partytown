@@ -1,7 +1,6 @@
 import { constructInstance } from './worker-constructors';
 import { getEnv } from './worker-environment';
 import { getInstanceStateValue, setInstanceStateValue } from './worker-state';
-
 import { HTMLSrcElement } from './worker-element';
 import { ImmediateSettersKey, InstanceIdKey, WinIdKey } from './worker-constants';
 import { InterfaceType, PlatformInstanceId, StateProp } from '../types';
