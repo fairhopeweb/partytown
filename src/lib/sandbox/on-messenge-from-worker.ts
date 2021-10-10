@@ -1,13 +1,13 @@
+import { getWinCtx, registerWindow } from './main-register-window';
+import { initializedWorkerScript, readNextScript } from './read-main-scripts';
 import {
   MainWindow,
   MessageFromWorkerToSandbox,
   PartytownWebWorker,
   WorkerMessageType,
 } from '../types';
-import { initializedWorkerScript, readNextScript } from './read-main-scripts';
 import { randomId } from '../utils';
 import { readMainInterfaces } from './read-main-interfaces';
-import { registerWindow } from './main-register-window';
 import { winCtxs } from './main-constants';
 
 export const onMessageFromWebWorker = (
@@ -28,8 +28,7 @@ export const onMessageFromWebWorker = (
     // web worker has finished initializing and ready to run scripts
     registerWindow(worker, randomId(), mainWindow);
   } else {
-    const $winId$ = msg[1];
-    const winCtx = winCtxs[$winId$]!;
+    const winCtx = winCtxs[msg[1]]!;
 
     if (msgType === WorkerMessageType.InitializeNextScript) {
       // web worker has been initialized with the main data

@@ -47,3 +47,17 @@ export const registerWindow = (
     }
   }
 };
+
+export const getWinCtx = (winId: number) => {
+  let i = 0;
+  return new Promise<MainWindowContext>((resolve) => {
+    const callback = () => {
+      if (winCtxs[winId] || i++ > 999) {
+        resolve(winCtxs[winId]!);
+      } else {
+        setTimeout(callback, 9);
+      }
+    };
+    callback();
+  });
+};

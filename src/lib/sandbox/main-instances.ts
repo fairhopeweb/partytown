@@ -1,6 +1,6 @@
-import { randomId } from '../utils';
 import { mainInstanceIdByInstance, mainInstances, winCtxs } from './main-constants';
-import { MainWindowContext, NodeName, PlatformInstanceId } from '../types';
+import { NodeName, PlatformInstanceId } from '../types';
+import { randomId } from '../utils';
 
 export const getInstanceId = (instance: InstanceType | null | undefined) => {
   if (instance) {
@@ -40,29 +40,24 @@ export const getInstance = <T = InstanceType | null>(
   winId: number,
   instanceId: number,
   instanceItem?: any,
-  winCtx?: MainWindowContext,
   doc?: Document
 ): T | undefined => {
-  winCtx = winCtxs[winId]!;
-
-  if (winCtx) {
-    doc = winCtx.$window$.document;
-    if (instanceId === PlatformInstanceId.document) {
-      return doc as any;
-    }
-    if (instanceId === PlatformInstanceId.documentElement) {
-      return doc.documentElement as any;
-    }
-    if (instanceId === PlatformInstanceId.head) {
-      return doc.head as any;
-    }
-    if (instanceId === PlatformInstanceId.body) {
-      return doc.body as any;
-    }
-    instanceItem = mainInstances.find((i) => i[0] === instanceId);
-    if (instanceItem) {
-      return instanceItem[1];
-    }
+  doc = winCtxs[winId]!.$window$.document;
+  if (instanceId === PlatformInstanceId.document) {
+    return doc as any;
+  }
+  if (instanceId === PlatformInstanceId.documentElement) {
+    return doc.documentElement as any;
+  }
+  if (instanceId === PlatformInstanceId.head) {
+    return doc.head as any;
+  }
+  if (instanceId === PlatformInstanceId.body) {
+    return doc.body as any;
+  }
+  instanceItem = mainInstances.find((i) => i[0] === instanceId);
+  if (instanceItem) {
+    return instanceItem[1];
   }
 };
 

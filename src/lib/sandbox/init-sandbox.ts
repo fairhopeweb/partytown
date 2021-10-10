@@ -46,9 +46,7 @@ export const initSandbox = async (sandboxWindow: any) => {
     mainWindow.addEventListener<any>(PT_IFRAME_APPENDED, (ev: CustomEvent) => {
       const win: MainWindow = ev.detail;
       const winId = getAndSetInstanceId(win.frameElement);
-      if (winId > -1) {
-        registerWindow(worker, winId, win);
-      }
+      registerWindow(worker, winId, win);
     });
   }
 };

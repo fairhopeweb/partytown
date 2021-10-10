@@ -1,14 +1,8 @@
-import {
-  AccessType,
-  MainAccessRequest,
-  MainAccessResponse,
-  MainWindowContext,
-  PartytownWebWorker,
-} from '../types';
+import { AccessType, MainAccessRequest, MainAccessResponse, PartytownWebWorker } from '../types';
 import { deserializeFromWorker, serializeForWorker } from './main-serialization';
-import { EMPTY_ARRAY, isPromise, len, logMain, normalizedWinId } from '../utils';
+import { EMPTY_ARRAY, isPromise, len } from '../utils';
 import { getInstance, setInstanceId } from './main-instances';
-import { winCtxs } from './main-constants';
+import { getWinCtx } from './main-register-window';
 
 export const mainAccessHandler = async (
   worker: PartytownWebWorker,
@@ -25,7 +19,7 @@ export const mainAccessHandler = async (
   let memberPathLength = len(memberPath);
   let lastMemberName = memberPath[memberPathLength - 1];
   let immediateSetters = accessReq.$immediateSetters$ || EMPTY_ARRAY;
-  let winCtx: MainWindowContext;
+  let winCtx = await getWinCtx($winId$);
   let instance: any;
   let rtnValue: any;
   let data: any;
@@ -33,32 +27,6 @@ export const mainAccessHandler = async (
   let immediateSetterTarget: any;
   let immediateSetterMemberPath;
   let immediateSetterMemberNameLen;
-  let waitTmr: any;
-
-  // if (!winCtxs[$winId$]) {
-  //   logMain(`Waiting on registering window (${normalizedWinId($winId$)})`);
-
-  //   await new Promise<void>((resolve) => {
-  //     i = 0;
-  //     waitTmr = setInterval(() => {
-  //       if (i++ > 999) {
-  //         accessRsp.$error$ = `Timeout`;
-  //         clearInterval(waitTmr);
-  //         resolve();
-  //       }
-  //       if (winCtxs[$winId$] && winCtxs[$winId$]!.$isInitialized$) {
-  //         clearInterval(waitTmr);
-  //         resolve();
-  //       }
-  //     }, 9);
-  //   });
-
-  //   if (accessRsp.$error$) {
-  //     return accessRsp;
-  //   }
-  // }
-
-  winCtx = winCtxs[$winId$]!;
 
   try {
     // deserialize the data, such as a getter value or function arguments
@@ -69,7 +37,7 @@ export const mainAccessHandler = async (
       setInstanceId(new (winCtx!.$window$ as any)[lastMemberName](...data), instanceId);
     } else {
       // get the existing instance
-      instance = getInstance(accessRsp.$winId$, instanceId);
+      instance = getInstance($winId$, instanceId);
       if (instance) {
         for (i = 0; i < memberPathLength - 1; i++) {
           instance = instance[memberPath[i]];
