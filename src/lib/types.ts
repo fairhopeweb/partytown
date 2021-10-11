@@ -94,7 +94,7 @@ export interface WebWorkerContext extends InitWebWorkerData, InitWebWorkerContex
 export interface InitializeEnvironmentData {
   $winId$: number;
   $parentWinId$: number;
-  $isTop$: boolean;
+  $isTop$?: number;
   $url$: string;
 }
 

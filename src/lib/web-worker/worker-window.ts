@@ -2,7 +2,7 @@ import { constructInstance } from './worker-constructors';
 import { createImageConstructor } from './worker-image';
 import { debug, normalizedWinId } from '../utils';
 import { environments, WinIdKey } from './worker-constants';
-import { getEnv } from './worker-environment';
+import { getEnv, getEnvWindow } from './worker-environment';
 import type { HTMLDocument } from './worker-document';
 import { InterfaceType, NodeName, PlatformInstanceId } from '../types';
 import { WorkerProxy } from './worker-proxy-constructor';
@@ -26,7 +26,7 @@ export class Window extends WorkerProxy {
   }
 
   get globalThis() {
-    return this;
+    return getEnvWindow(this);
   }
 
   get Image() {
@@ -43,16 +43,11 @@ export class Window extends WorkerProxy {
 
   get parent(): Window {
     const env = getEnv(this);
-    for (const winId in environments) {
-      if (winId + '' == env.$parentWinId$ + '') {
-        return environments[winId].$window$!;
-      }
-    }
-    return this;
+    return environments[env.$parentWinId$].$window$!;
   }
 
   get self() {
-    return this;
+    return getEnvWindow(this);
   }
 
   get top(): Window {
@@ -61,10 +56,10 @@ export class Window extends WorkerProxy {
         return environments[winId].$window$!;
       }
     }
-    return this;
+    return getEnvWindow(this);
   }
 
   get window() {
-    return this;
+    return getEnvWindow(this);
   }
 }

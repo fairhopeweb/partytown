@@ -125,7 +125,7 @@ export const getEnvWindow = (instance: { [WinIdKey]: number }) => getEnv(instanc
 
 export const getEnvDocument = (instance: { [WinIdKey]: number }) => getEnvWindow(instance).document;
 
-export const setEnv = ($winId$: number, $parentWinId$: number, url: string, $isTop$?: boolean) => {
+export const setEnv = ($winId$: number, $parentWinId$: number, url: string, $isTop$?: number) => {
   const env = (environments[$winId$] = environments[$winId$] || {
     $winId$,
     $parentWinId$,

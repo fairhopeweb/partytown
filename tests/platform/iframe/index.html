@@ -185,7 +185,6 @@
             const elm = document.getElementById('testSetSomeWindowVar');
             const iframe = document.createElement('iframe');
             iframe.addEventListener('load', function (ev) {
-              debugger;
               const iframeWin = iframe.contentWindow;
               const iframeSomeWindowVar = iframeWin.someWindowVar;
               elm.textContent = iframeSomeWindowVar.year;

@@ -13,7 +13,8 @@ import { winCtxs, windowIds } from './main-constants';
 export const registerWindow = (
   worker: PartytownWebWorker,
   $winId$: number,
-  $window$: MainWindow
+  $window$: MainWindow,
+  $isTop$?: number
 ) => {
   if (!windowIds.has($window$)) {
     windowIds.set($window$, $winId$);
@@ -24,7 +25,7 @@ export const registerWindow = (
     const envData: InitializeEnvironmentData = {
       $winId$,
       $parentWinId$: windowIds.get($window$.parent)!,
-      $isTop$: $window$.top === $window$,
+      $isTop$,
       $url$,
     };
 

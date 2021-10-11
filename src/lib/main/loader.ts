@@ -44,7 +44,8 @@ export function loader(
 
   scripts = doc.querySelectorAll(`script[type="${SCRIPT_TYPE}"]`);
 
-  if (location !== parent.location) {
+  if (top !== win) {
+    // this is an iframe
     top!.dispatchEvent(new CustomEvent(PT_IFRAME_APPENDED, { detail: win }));
   } else {
     if (scripts!.length) {
