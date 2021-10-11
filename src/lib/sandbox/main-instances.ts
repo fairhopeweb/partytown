@@ -1,8 +1,8 @@
-import { mainInstanceIdByInstance, mainInstances, winCtxs } from './main-constants';
-import { NodeName, PlatformInstanceId } from '../types';
 import { randomId } from '../utils';
+import { MainWindowContext, NodeName, PlatformInstanceId } from '../types';
+import { winCtxs } from './main-constants';
 
-export const getInstanceId = (instance: InstanceType | null | undefined) => {
+const getInstanceId = (winCtx: MainWindowContext, instance: InstanceType | null | undefined) => {
   if (instance) {
     const nodeName = (instance as any as Node).nodeName;
     if (nodeName === NodeName.Document) {
@@ -17,19 +17,20 @@ export const getInstanceId = (instance: InstanceType | null | undefined) => {
     if (nodeName === NodeName.Body) {
       return PlatformInstanceId.body;
     }
-    return mainInstanceIdByInstance.get(instance);
+    return winCtx.$instanceIds$.get(instance);
   }
   return -1;
 };
 
 export const getAndSetInstanceId = (
+  winCtx: MainWindowContext,
   instance: InstanceType | null | undefined,
   instanceId?: number
 ) => {
   if (instance) {
-    instanceId = getInstanceId(instance);
+    instanceId = getInstanceId(winCtx, instance);
     if (typeof instanceId !== 'number') {
-      setInstanceId(instance, (instanceId = randomId()));
+      setInstanceId(winCtx, instance, (instanceId = randomId()));
     }
     return instanceId;
   }
@@ -39,10 +40,10 @@ export const getAndSetInstanceId = (
 export const getInstance = <T = InstanceType | null>(
   winId: number,
   instanceId: number,
-  instanceItem?: any,
-  doc?: Document
+  instanceItem?: any
 ): T | undefined => {
-  doc = winCtxs[winId]!.$window$.document;
+  const winCtx = winCtxs[winId]!;
+  const doc: Document = winCtx.$window$.document;
   if (instanceId === PlatformInstanceId.document) {
     return doc as any;
   }
@@ -55,16 +56,20 @@ export const getInstance = <T = InstanceType | null>(
   if (instanceId === PlatformInstanceId.body) {
     return doc.body as any;
   }
-  instanceItem = mainInstances.find((i) => i[0] === instanceId);
+  instanceItem = winCtx.$instances$.find((i) => i[0] === instanceId);
   if (instanceItem) {
     return instanceItem[1];
   }
 };
 
-export const setInstanceId = (instance: InstanceType | null | undefined, instanceId: number) => {
+export const setInstanceId = (
+  winCtx: MainWindowContext,
+  instance: InstanceType | null | undefined,
+  instanceId: number
+) => {
   if (instance) {
-    mainInstances.push([instanceId, instance]);
-    mainInstanceIdByInstance.set(instance, instanceId);
+    winCtx.$instances$.push([instanceId, instance]);
+    winCtx.$instanceIds$.set(instance, instanceId);
 
     // winCtx.$cleanupInc$++;
     // if (winCtx.$cleanupInc$ > 99) {

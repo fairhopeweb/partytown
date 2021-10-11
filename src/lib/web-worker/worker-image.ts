@@ -1,18 +1,15 @@
 import { debug, logWorker } from '../utils';
-import { resolveUrl } from './worker-exec';
-import { webWorkerCtx, WinIdKey } from './worker-constants';
+import { environments, webWorkerCtx } from './worker-constants';
 import type { EventHandler } from '../types';
-import { getEnv } from './worker-environment';
+import { resolveUrl } from './worker-exec';
 
 export const createImageConstructor = (winId: number) => {
   return class HTMLImageElement {
-    [WinIdKey]: number;
     s: string;
     l: EventHandler[];
     e: EventHandler[];
 
     constructor() {
-      this[WinIdKey] = winId;
       this.s = '';
       this.l = [];
       this.e = [];
@@ -22,7 +19,7 @@ export const createImageConstructor = (winId: number) => {
       return this.s;
     }
     set src(src: string) {
-      const env = getEnv(this);
+      const env = environments[winId];
       if (debug && webWorkerCtx.$config$.logImageRequests) {
         logWorker(`Image() request: ${resolveUrl(env, src)}`, winId);
       }
@@ -33,9 +30,9 @@ export const createImageConstructor = (winId: number) => {
       }).then(
         (rsp) => {
           if (rsp.ok) {
-            this.l.forEach((cb) => cb({ type: 'load' }));
+            this.l.map((cb) => cb({ type: 'load' }));
           } else {
-            this.e.forEach((cb) => cb({ type: 'error' }));
+            this.e.map((cb) => cb({ type: 'error' }));
           }
         },
         () => this.e.forEach((cb) => cb({ type: 'error' }))

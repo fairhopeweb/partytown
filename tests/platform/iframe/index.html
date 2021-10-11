@@ -175,7 +175,7 @@
             elm.parentNode.insertBefore(iframe, null);
           })();
         </script>
-      </li>
+      </li>-->
 
       <li>
         <strong>script.src set, window.someWindowVar</strong>
@@ -185,16 +185,19 @@
             const elm = document.getElementById('testSetSomeWindowVar');
             const iframe = document.createElement('iframe');
             iframe.addEventListener('load', function (ev) {
-              elm.textContent = iframe.contentWindow.someWindowVar.year;
+              debugger;
+              const iframeWin = iframe.contentWindow;
+              const iframeSomeWindowVar = iframeWin.someWindowVar;
+              elm.textContent = iframeSomeWindowVar.year;
               elm.className = 'testSetSomeWindowVar';
             });
             iframe.src = 'external-js.html';
             elm.parentNode.insertBefore(iframe, null);
           })();
         </script>
-      </li>-->
+      </li>
 
-      <li>
+      <!-- <li>
         <strong>window.top / window.parent</strong>
         <code id="testTopSomeValue"></code>
         <script type="text/partytown">
@@ -218,6 +221,7 @@
             iframeHead.innerHTML = `
               <style>body { background: peachpuff; }</style>
             `;
+
             iframe.contentDocument.body.innerHTML = window.year + window.gw;
 
             const script = iframe.contentDocument.createElement('script');
@@ -227,8 +231,6 @@
 
               const parentWin = window.parent;
               const parentWinValue = parentWin.gw;
-
-              console.log('parentWinValue',parentWin);
               const value = parentWinValue + topWinValue;
 
               const parentDocument = parentWin.document;
@@ -241,7 +243,7 @@
         </script>
       </li>
 
-      <!-- <li>
+      <li>
         <strong>script.src set, window.parent</strong>
         <code id="testScriptWindowParent"></code>
         <script type="text/partytown">

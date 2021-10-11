@@ -1,4 +1,5 @@
 import type { Location } from './web-worker/worker-location';
+import type { Window as WorkerWindow } from './web-worker/worker-window';
 
 export type CreateWorker = (workerName: string) => Worker;
 
@@ -45,11 +46,6 @@ export const enum WorkerMessageType {
   RunStateHandlers,
 }
 
-export interface InitializeEnvironmentData {
-  $winId$: number;
-  $url$: string;
-}
-
 export interface ForwardMainTriggerData {
   $winId$: number;
   $instanceId$: number;
@@ -69,11 +65,12 @@ export type PostMessageToWorker = (msg: MessageFromSandboxToWorker) => void;
 
 export interface MainWindowContext {
   $winId$: number;
-  $parentWinId$: number;
   $isInitialized$?: number;
   $startTime$?: number;
   $url$: string;
   $window$: MainWindow;
+  $instanceIds$: WeakMap<any, number>;
+  $instances$: [number, any][];
 }
 
 export interface PartytownWebWorker extends Worker {
@@ -94,14 +91,20 @@ export interface InitWebWorkerContext {
 
 export interface WebWorkerContext extends InitWebWorkerData, InitWebWorkerContext {}
 
-export interface WebWorkerEnvironment {
+export interface InitializeEnvironmentData {
   $winId$: number;
+  $parentWinId$: number;
+  $isTop$: boolean;
+  $url$: string;
+}
+
+export interface WebWorkerEnvironment extends Omit<InitializeEnvironmentData, '$url$'> {
+  $window$?: WorkerWindow;
+  $location$?: Location;
   $currentScriptId$?: number;
   $currentScriptUrl$?: string;
-  $location$: Location;
-  $globals$: WebWorkerGlobal[];
-  $run$: (content: string) => void;
-  $window$: any;
+  $globals$?: WebWorkerGlobal[];
+  $run$?: (content: string) => void;
   $isInitialized$?: number;
 }
 
@@ -364,8 +367,6 @@ export type PartytownForwardProperty = [
 
 export interface MainWindow extends Window {
   partytown?: PartytownConfig;
-  parent: MainWindow;
-  top: MainWindow;
   _ptf?: any[];
 }
 

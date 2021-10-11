@@ -34,7 +34,7 @@ export const mainAccessHandler = async (
 
     if (accessType === AccessType.GlobalConstructor) {
       // create a new instance of a global constructor
-      setInstanceId(new (winCtx!.$window$ as any)[lastMemberName](...data), instanceId);
+      setInstanceId(winCtx, new (winCtx!.$window$ as any)[lastMemberName](...data), instanceId);
     } else {
       // get the existing instance
       instance = getInstance($winId$, instanceId);
@@ -64,7 +64,7 @@ export const mainAccessHandler = async (
           });
 
           if (accessReq.$newInstanceId$) {
-            setInstanceId(rtnValue, accessReq.$newInstanceId$);
+            setInstanceId(winCtx, rtnValue, accessReq.$newInstanceId$);
           }
         }
 
@@ -74,7 +74,7 @@ export const mainAccessHandler = async (
         }
         accessRsp.$rtnValue$ = serializeForWorker($winId$, rtnValue);
       } else {
-        accessRsp.$error$ = `${instanceId} not found`;
+        accessRsp.$error$ = instanceId + ' not found';
       }
     }
   } catch (e: any) {

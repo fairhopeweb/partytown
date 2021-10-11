@@ -12,16 +12,18 @@ import { WorkerProxy } from './worker-proxy-constructor';
 
 export class HTMLIFrameElement extends HTMLSrcElement {
   get contentDocument() {
-    return this.contentWindow!.document;
+    const winId = this[InstanceIdKey];
+    return constructInstance(InterfaceType.Document, PlatformInstanceId.document, winId);
   }
 
   get contentWindow() {
     // the winId of an iframe's window is the same
     // as the instanceId of the containing iframe element
     const winId = this[InstanceIdKey];
+    const win = constructInstance(InterfaceType.Window, PlatformInstanceId.window, winId);
 
-    const win = new Window(InterfaceType.Window, PlatformInstanceId.window, winId);
-    win.location = this.src;
+    // const win = new Window(InterfaceType.Window, PlatformInstanceId.window, winId);
+    // win.location = this.src;
     return win;
   }
 
@@ -57,39 +59,39 @@ export class HTMLIFrameElement extends HTMLSrcElement {
   }
 }
 
-export class Window extends WorkerProxy {
-  get document() {
-    return constructInstance(InterfaceType.Document, PlatformInstanceId.document, this[WinIdKey]);
-  }
+// export class Window extends WorkerProxy {
+//   get document() {
+//     return constructInstance(InterfaceType.Document, PlatformInstanceId.document, this[WinIdKey]);
+//   }
 
-  get location(): Location {
-    let location = getInstanceStateValue<Location>(this, StateProp.url);
-    if (!location) {
-      setInstanceStateValue(this, StateProp.url, (location = new Location('about:blank')));
-    }
-    return location;
-  }
-  set location(url: any) {
-    this.location.href = !url || url === '' ? 'about:blank' : url;
-  }
+//   get location(): Location {
+//     let location = getInstanceStateValue<Location>(this, StateProp.url);
+//     if (!location) {
+//       setInstanceStateValue(this, StateProp.url, (location = new Location('about:blank')));
+//     }
+//     return location;
+//   }
+//   set location(url: any) {
+//     this.location.href = !url || url === '' ? 'about:blank' : url;
+//   }
 
-  get parent() {
-    return constructInstance(
-      InterfaceType.Window,
-      PlatformInstanceId.window
-      // webWorkerCtx.$parentWinId$
-    );
-  }
+//   get parent() {
+//     return constructInstance(
+//       InterfaceType.Window,
+//       PlatformInstanceId.window
+//       // webWorkerCtx.$parentWinId$
+//     );
+//   }
 
-  get self() {
-    return this;
-  }
+//   get self() {
+//     return this;
+//   }
 
-  get top() {
-    return top;
-  }
+//   get top() {
+//     return top;
+//   }
 
-  get window() {
-    return this;
-  }
-}
+//   get window() {
+//     return this;
+//   }
+// }

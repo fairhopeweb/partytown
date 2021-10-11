@@ -16,34 +16,43 @@ export const registerWindow = (
   $window$: MainWindow
 ) => {
   if (!windowIds.has($window$)) {
+    windowIds.set($window$, $winId$);
+
     const doc = $window$.document;
     const $url$ = doc.baseURI;
 
-    const initEnvData: InitializeEnvironmentData = { $winId$, $url$ };
-
-    const sendInitEnvironment = () =>
-      worker.postMessage([WorkerMessageType.InitializeEnvironment, initEnvData]);
-
-    winCtxs[$winId$] = {
+    const envData: InitializeEnvironmentData = {
       $winId$,
       $parentWinId$: windowIds.get($window$.parent)!,
+      $isTop$: $window$.top === $window$,
       $url$,
-      $window$,
     };
+
+    const sendInitEnvData = () =>
+      worker.postMessage([WorkerMessageType.InitializeEnvironment, envData]);
+
+    const winCtx = (winCtxs[$winId$] = {
+      $winId$,
+      $window$,
+      $url$,
+      $instanceIds$: new WeakMap(),
+      $instances$: [],
+    });
     if (debug) {
       winCtxs[$winId$]!.$startTime$ = performance.now();
     }
 
-    windowIds.set($window$, $winId$);
+    setInstanceId(winCtx, $window$, PlatformInstanceId.window);
 
-    setInstanceId($window$, PlatformInstanceId.window);
-
-    logMain(`Registered window ${normalizedWinId($winId$)} (${$winId$})`);
+    if (debug) {
+      const winType = envData.$isTop$ ? 'top' : 'iframe';
+      logMain(`Registered ${winType} window ${normalizedWinId($winId$)} (${$winId$})`);
+    }
 
     if (doc.readyState === 'complete') {
-      sendInitEnvironment();
+      sendInitEnvData();
     } else {
-      $window$.addEventListener('load', sendInitEnvironment);
+      $window$.addEventListener('load', sendInitEnvData);
     }
   }
 };

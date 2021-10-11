@@ -1,10 +1,10 @@
 import { callMethod } from './worker-proxy';
 import { constructInstance, getElementConstructor } from './worker-constructors';
-import { getEnv, getEnvDocument, getEnvWindow } from './worker-environment';
+import { environments, ImmediateSettersKey, WinIdKey } from './worker-constants';
+import { getEnv, getEnvDocument, getEnvWindow, setEnv } from './worker-environment';
 import { getPartytownScript } from './worker-exec';
 import { HTMLElement } from './worker-element';
-import { ImmediateSettersKey, WinIdKey } from './worker-constants';
-import { InterfaceType, NodeName, PlatformInstanceId } from '../types';
+import { ImmediateSetter, InterfaceType, NodeName, PlatformInstanceId } from '../types';
 import { SCRIPT_TYPE, randomId, toUpper, debug, logWorkerGetter, logWorkerSetter } from '../utils';
 import { serializeForMain } from './worker-serialization';
 
@@ -25,13 +25,17 @@ export class HTMLDocument extends HTMLElement {
     const instanceId = randomId();
     const ElementCstr = getElementConstructor(tagName);
     const elm = new ElementCstr(InterfaceType.Element, instanceId, winId, tagName);
+    const immediateSetter: ImmediateSetter[] = (elm[ImmediateSettersKey] = []);
 
-    elm[ImmediateSettersKey] =
-      tagName === NodeName.Script
-        ? [[['type'], serializeForMain(winId, instanceId, SCRIPT_TYPE)]]
-        : tagName === NodeName.IFrame
-        ? [[['srcdoc'], serializeForMain(winId, instanceId, getPartytownScript())]]
-        : [];
+    if (tagName === NodeName.IFrame) {
+      immediateSetter.push([['srcdoc'], serializeForMain(winId, instanceId, getPartytownScript())]);
+
+      // an iframe element's instanceId is the same as its contentWindow's winId
+      // and the contentWindow's parentWinId is the iframe element's winId
+      setEnv(instanceId, winId, environments[winId].$location$! + '');
+    } else if (tagName === NodeName.Script) {
+      immediateSetter.push([['type'], serializeForMain(winId, instanceId, SCRIPT_TYPE)]);
+    }
 
     return elm;
   }
@@ -99,15 +103,15 @@ export class HTMLDocument extends HTMLElement {
 
   get location() {
     if (debug) {
-      logWorkerGetter(this, ['location'], getEnv(this).$location$);
+      logWorkerGetter(this, ['location'], getEnvWindow(this).location);
     }
-    return getEnv(this).$location$;
+    return getEnvWindow(this).location;
   }
   set location(url: any) {
     if (debug) {
       logWorkerSetter(this, ['location'], url);
     }
-    getEnv(this).$location$.href = url + '';
+    getEnvWindow(this).location.href = url + '';
   }
 
   get parentNode() {

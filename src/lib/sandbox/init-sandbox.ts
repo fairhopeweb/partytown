@@ -12,6 +12,7 @@ import { registerWindow } from './main-register-window';
 import syncCreateMessenger from '@sync-create-messenger';
 import WebWorkerBlob from '@web-worker-blob';
 import WebWorkerUrl from '@web-worker-url';
+import { winCtxs, windowIds } from './main-constants';
 
 export const initSandbox = async (sandboxWindow: any) => {
   let worker: PartytownWebWorker;
@@ -45,7 +46,9 @@ export const initSandbox = async (sandboxWindow: any) => {
 
     mainWindow.addEventListener<any>(PT_IFRAME_APPENDED, (ev: CustomEvent) => {
       const win: MainWindow = ev.detail;
-      const winId = getAndSetInstanceId(win.frameElement);
+      const parentWinId = windowIds.get(win.parent);
+      const parentWinCtx = winCtxs[parentWinId!]!;
+      const winId = getAndSetInstanceId(parentWinCtx, win.frameElement);
       registerWindow(worker, winId, win);
     });
   }

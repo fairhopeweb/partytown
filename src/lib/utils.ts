@@ -129,7 +129,7 @@ const logTargetProp = (target: any, accessType: AccessType, memberPath: string[]
   if (target) {
     const instanceId = target[InstanceIdKey];
     if (instanceId === PlatformInstanceId.window) {
-      n = 'window.';
+      n = '';
     } else if (instanceId === PlatformInstanceId.document) {
       n = 'document.';
     } else if (instanceId === PlatformInstanceId.documentElement) {

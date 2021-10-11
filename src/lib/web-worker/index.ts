@@ -1,10 +1,10 @@
 import { callWorkerRefHandler } from './worker-serialization';
 import { createEnvironment } from './worker-environment';
 import { debug, logWorker, nextTick, normalizedWinId } from '../utils';
+import { environments, webWorkerCtx } from './worker-constants';
 import { initNextScriptsInWebWorker } from './worker-exec';
 import { initWebWorker } from './init-web-worker';
 import { InitWebWorkerData, MessageFromSandboxToWorker, WorkerMessageType } from '../types';
-import { environments, webWorkerCtx } from './worker-constants';
 
 const queuedEvents: MessageEvent<MessageFromSandboxToWorker>[] = [];
 
@@ -29,7 +29,16 @@ const receiveMessageFromSandboxToWorker = (ev: MessageEvent<MessageFromSandboxTo
       createEnvironment(self, msg[1]);
     } else if (msgType === WorkerMessageType.InitializedEnvironment) {
       environments[msg[1]].$isInitialized$ = 1;
-      logWorker(`Initialized window ${normalizedWinId(msg[1])} environment (${msg[1]})`, msg[1]);
+
+      if (debug) {
+        const winId = msg[1];
+        const env = environments[winId];
+        const winType = env.$isTop$ ? 'top' : 'iframe';
+        logWorker(
+          `Initialized ${winType} window ${normalizedWinId(winId)} environment (${winId}) 🎉`,
+          winId
+        );
+      }
     }
   } else if (msgType === WorkerMessageType.MainDataResponseToWorker) {
     // initialize the web worker with the received the main data

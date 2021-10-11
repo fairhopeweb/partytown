@@ -36,7 +36,7 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
 
         env.$currentScriptId$ = instanceId;
         env.$currentScriptUrl$ = scriptSrc;
-        env.$run$(scriptContent);
+        env.$run$!(scriptContent);
         runStateLoadHandlers(instanceId, StateProp.loadHandlers);
       } else {
         console.error(rsp.status, 'url:', scriptSrc);
@@ -64,7 +64,7 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
 
       env.$currentScriptId$ = instanceId;
       env.$currentScriptUrl$ = '';
-      env.$run$(scriptContent);
+      env.$run$!(scriptContent);
     } catch (contentError: any) {
       console.error(scriptContent, contentError);
       errorMsg = String(contentError.stack || contentError) + '';

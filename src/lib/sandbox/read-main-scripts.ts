@@ -20,7 +20,7 @@ export const readNextScript = (worker: PartytownWebWorker, winCtx: MainWindowCon
 
   if (scriptElm) {
     // read the next script found
-    scriptElm.dataset.ptid = $instanceId$ = getAndSetInstanceId(scriptElm, $winId$) as any;
+    scriptElm.dataset.ptid = $instanceId$ = getAndSetInstanceId(winCtx, scriptElm, $winId$) as any;
 
     scriptData = {
       $winId$,
@@ -43,10 +43,11 @@ export const readNextScript = (worker: PartytownWebWorker, winCtx: MainWindowCon
     doc.dispatchEvent(new CustomEvent(PT_INITIALIZED_EVENT));
 
     if (debug) {
+      const winType = win === win.top ? 'top' : 'iframe';
       logMain(
-        `Executed window ${normalizedWinId($winId$)} environment scripts in ${(
+        `Executed ${winType} window ${normalizedWinId($winId$)} environment scripts in ${(
           performance.now() - winCtx.$startTime$!
-        ).toFixed(1)}ms 🎉`
+        ).toFixed(1)}ms`
       );
     }
 
