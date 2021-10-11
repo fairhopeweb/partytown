@@ -22,7 +22,7 @@ export class Node extends WorkerProxy {
   set href(_: any) {}
 
   insertBefore(newNode: Node, referenceNode: Node | null) {
-    applyBeforeSyncSetters(this[WinIdKey], newNode);
+    applyBeforeSyncSetters(newNode);
 
     newNode = callMethod(this, ['insertBefore'], [newNode, referenceNode], EMPTY_ARRAY);
 

@@ -3,7 +3,6 @@ import { constructInstance } from './worker-constructors';
 import {
   InterfaceType,
   PlatformInstanceId,
-  RefHandler,
   RefHandlerCallbackData,
   SerializedInstance,
   SerializedRefTransferData,
@@ -14,7 +13,6 @@ import {
   InstanceIdKey,
   InterfaceTypeKey,
   NodeNameKey,
-  webWorkerCtx,
   webWorkerRefIdsByRef,
   webWorkerRefsByRefId,
   WinIdKey,

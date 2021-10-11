@@ -75,28 +75,38 @@ const winColor = (winId: number) => {
   return colors[index] || colors[colors.length - 1];
 };
 
-export const logWorkerGetter = (target: any, memberPath: string[], rtnValue: any) => {
+export const logWorkerGetter = (
+  target: any,
+  memberPath: string[],
+  rtnValue: any,
+  restrictedToWorker = false
+) => {
   if (debug && webWorkerCtx.$config$.logGetters) {
     try {
       logWorker(
         `Get ${logTargetProp(target, AccessType.Get, memberPath)}, returned: ${logValue(
           memberPath,
           rtnValue
-        )}`,
+        )}${restrictedToWorker ? ' (restricted to worker)' : ''}`,
         target[WinIdKey]
       );
     } catch (e) {}
   }
 };
 
-export const logWorkerSetter = (target: any, memberPath: string[], value: any) => {
+export const logWorkerSetter = (
+  target: any,
+  memberPath: string[],
+  value: any,
+  restrictedToWorker = false
+) => {
   if (debug && webWorkerCtx.$config$.logSetters) {
     try {
       logWorker(
         `Set ${logTargetProp(target, AccessType.Set, memberPath)}, value: ${logValue(
           memberPath,
           value
-        )}`,
+        )}${restrictedToWorker ? ' (restricted to worker)' : ''}`,
         target[WinIdKey]
       );
     } catch (e) {}
