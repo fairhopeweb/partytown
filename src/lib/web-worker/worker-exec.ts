@@ -97,7 +97,7 @@ export const insertIframe = (iframe: Node) => {
 
   const callback = () => {
     if (environments[winId] && environments[winId].$isInitialized$) {
-      let type = getInstanceStateValue<StateProp>(iframe, StateProp.loadError)
+      let type = getInstanceStateValue<StateProp>(iframe, StateProp.loadErrorStatus)
         ? StateProp.errorHandlers
         : StateProp.loadHandlers;
 
@@ -125,7 +125,7 @@ const resolveToUrl = (env: WebWorkerEnvironment, url?: string) =>
 export const resolveUrl = (env: WebWorkerEnvironment, url?: string) => resolveToUrl(env, url) + '';
 
 export const getUrl = (elm: HTMLElement) =>
-  resolveToUrl(getEnv(elm), getInstanceStateValue(elm, StateProp.href));
+  resolveToUrl(getEnv(elm), getInstanceStateValue(elm, StateProp.url));
 
 export const updateIframeContent = (url: string, html: string) =>
   `<base href="${url}">` +

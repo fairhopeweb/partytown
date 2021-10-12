@@ -1,10 +1,10 @@
 import { callMethod } from './worker-proxy';
 import { constructInstance, getElementConstructor } from './worker-constructors';
-import { environments, ImmediateSettersKey, WinIdKey } from './worker-constants';
 import { getEnv, getEnvDocument, getEnvWindow, setEnv } from './worker-environment';
 import { getPartytownScript } from './worker-exec';
 import { HTMLElement } from './worker-element';
 import { ImmediateSetter, InterfaceType, NodeName, PlatformInstanceId } from '../types';
+import { ImmediateSettersKey, WinIdKey } from './worker-constants';
 import { SCRIPT_TYPE, randomId, toUpper, debug, logWorkerGetter, logWorkerSetter } from '../utils';
 import { serializeForMain } from './worker-serialization';
 
@@ -32,7 +32,7 @@ export class HTMLDocument extends HTMLElement {
 
       // an iframe element's instanceId is the same as its contentWindow's winId
       // and the contentWindow's parentWinId is the iframe element's winId
-      setEnv(instanceId, winId, environments[winId].$location$! + '');
+      setEnv(instanceId, winId, 'about:blank');
     } else if (tagName === NodeName.Script) {
       immediateSetter.push([['type'], serializeForMain(winId, instanceId, SCRIPT_TYPE)]);
     }
@@ -126,11 +126,6 @@ export class HTMLDocument extends HTMLElement {
     logWorkerGetter(this, ['readyState'], 'complete');
     return 'complete';
   }
-
-  // get referrer() {
-  //   logWorkerGetter(this, ['referrer'], webWorkerCtx.$documentReferrer$);
-  //   return webWorkerCtx.$documentReferrer$;
-  // }
 }
 
 export class WorkerDocumentElementChild extends HTMLElement {

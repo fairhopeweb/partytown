@@ -392,10 +392,8 @@ export const enum NodeName {
 export const enum StateProp {
   errorHandlers = 'error',
   loadHandlers = 'load',
-  href = 'href',
-  loadError = 1,
-  partyWinId = 2,
-  url = 3,
+  loadErrorStatus = 1,
+  url = 2,
 }
 
 export type EventHandler = (ev: any) => void;
