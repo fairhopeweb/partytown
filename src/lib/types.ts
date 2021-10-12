@@ -393,7 +393,8 @@ export const enum StateProp {
   errorHandlers = 'error',
   loadHandlers = 'load',
   loadErrorStatus = 1,
-  url = 2,
+  innerHTML = 2,
+  url = 3,
 }
 
 export type EventHandler = (ev: any) => void;

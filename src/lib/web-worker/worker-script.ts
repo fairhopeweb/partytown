@@ -8,6 +8,21 @@ import { serializeForMain } from './worker-serialization';
 import { StateProp } from '../types';
 
 export class HTMLScriptElement extends HTMLSrcElement {
+  get innerHTML() {
+    return getInstanceStateValue<string>(this, StateProp.innerHTML) || '';
+  }
+  set innerHTML(content: string) {
+    setInstanceStateValue(this, StateProp.innerHTML, content);
+    getEnv(this).$run$!(content);
+  }
+
+  get innerText() {
+    return this.innerHTML;
+  }
+  set innerText(content: string) {
+    this.innerHTML = content;
+  }
+
   get src() {
     return getInstanceStateValue<string>(this, StateProp.url) || '';
   }
@@ -21,6 +36,13 @@ export class HTMLScriptElement extends HTMLSrcElement {
         serializeForMain(this[WinIdKey], this[InstanceIdKey], url),
       ]);
     }
+  }
+
+  get textContent() {
+    return this.innerHTML;
+  }
+  set textContent(content: string) {
+    this.innerHTML = content;
   }
 
   get type() {

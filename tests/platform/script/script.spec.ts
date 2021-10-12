@@ -20,4 +20,16 @@ test('script', async ({ page }) => {
   await page.waitForSelector('.testAddEventListenerError');
   const testAddEventListenerError = page.locator('#testAddEventListenerError');
   await expect(testAddEventListenerError).toHaveText('error');
+
+  await page.waitForSelector('.testInnerHTML');
+  const testInnerHTML = page.locator('#testInnerHTML');
+  await expect(testInnerHTML).toHaveText('88');
+
+  await page.waitForSelector('.testTextContent');
+  const testTextContent = page.locator('#testTextContent');
+  await expect(testTextContent).toHaveText('99');
+
+  await page.waitForSelector('.testInnerText');
+  const testInnerText = page.locator('#testInnerText');
+  await expect(testInnerText).toHaveText('101');
 });
