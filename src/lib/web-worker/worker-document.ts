@@ -1,6 +1,6 @@
 import { callMethod } from './worker-proxy';
 import { constructInstance, getElementConstructor } from './worker-constructors';
-import { getEnv, getEnvDocument, getEnvWindow, setEnv } from './worker-environment';
+import { createEnvironment, getEnv, getEnvDocument, getEnvWindow } from './worker-environment';
 import { getPartytownScript } from './worker-exec';
 import { HTMLElement } from './worker-element';
 import { ImmediateSetter, InterfaceType, NodeName, PlatformInstanceId } from '../types';
@@ -32,7 +32,7 @@ export class HTMLDocument extends HTMLElement {
 
       // an iframe element's instanceId is the same as its contentWindow's winId
       // and the contentWindow's parentWinId is the iframe element's winId
-      setEnv(instanceId, winId, 'about:blank');
+      createEnvironment({ $winId$: instanceId, $parentWinId$: winId, $url$: 'about:blank' });
     } else if (tagName === NodeName.Script) {
       immediateSetter.push([['type'], serializeForMain(winId, instanceId, SCRIPT_TYPE)]);
     }

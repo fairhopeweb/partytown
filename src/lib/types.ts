@@ -1,3 +1,4 @@
+import type { HTMLDocument } from './web-worker/worker-document';
 import type { Location } from './web-worker/worker-location';
 import type { Window as WorkerWindow } from './web-worker/worker-window';
 
@@ -99,12 +100,12 @@ export interface InitializeEnvironmentData {
 }
 
 export interface WebWorkerEnvironment extends Omit<InitializeEnvironmentData, '$url$'> {
-  $window$?: WorkerWindow;
-  $location$?: Location;
+  $window$: WorkerWindow;
+  $location$: Location;
+  $document$: HTMLDocument;
+  $run$: (content: string) => void;
   $currentScriptId$?: number;
   $currentScriptUrl$?: string;
-  $globals$?: WebWorkerGlobal[];
-  $run$?: (content: string) => void;
   $isInitialized$?: number;
 }
 

@@ -1,28 +1,19 @@
-import { constructInstance } from './worker-constructors';
 import { createImageConstructor } from './worker-image';
 import { debug, normalizedWinId } from '../utils';
 import { environments, WinIdKey } from './worker-constants';
 import { getEnv, getEnvWindow } from './worker-environment';
-import type { HTMLDocument } from './worker-document';
-import { InterfaceType, NodeName, PlatformInstanceId } from '../types';
 import { WorkerProxy } from './worker-proxy-constructor';
 
 export class Window extends WorkerProxy {
   get document() {
-    return constructInstance(
-      InterfaceType.Document,
-      PlatformInstanceId.document,
-      this[WinIdKey],
-      NodeName.Document
-    ) as HTMLDocument;
+    return getEnv(this).$document$;
   }
 
   get location() {
-    return getEnv(this).$location$!;
+    return getEnv(this).$location$;
   }
   set location(loc: any) {
-    const env = getEnv(this);
-    env.$location$!.href = loc + '';
+    getEnv(this).$location$.href = loc + '';
   }
 
   get globalThis() {
@@ -43,7 +34,7 @@ export class Window extends WorkerProxy {
 
   get parent(): Window {
     const env = getEnv(this);
-    return environments[env.$parentWinId$].$window$!;
+    return environments[env.$parentWinId$].$window$;
   }
 
   get self() {
@@ -53,7 +44,7 @@ export class Window extends WorkerProxy {
   get top(): Window {
     for (const winId in environments) {
       if (environments[winId].$isTop$) {
-        return environments[winId].$window$!;
+        return environments[winId].$window$;
       }
     }
     return getEnvWindow(this);

@@ -8,9 +8,11 @@ import {
   webWorkerCtx,
   WinIdKey,
 } from './worker-constants';
+import type { HTMLDocument } from './worker-document';
 import {
   InitializeEnvironmentData,
   InterfaceType,
+  NodeName,
   PlatformInstanceId,
   TargetSetterType,
   WebWorkerGlobal,
@@ -19,13 +21,42 @@ import {
 import { Location } from './worker-location';
 import { Window } from './worker-window';
 
-export const createEnvironment = (
-  glbThis: any,
-  { $winId$, $parentWinId$, $isTop$, $url$ }: InitializeEnvironmentData
-) => {
-  const env = setEnv($winId$, $parentWinId$, $url$, $isTop$);
+export const createEnvironment = ({
+  $winId$,
+  $parentWinId$,
+  $isTop$,
+  $url$,
+}: InitializeEnvironmentData) => {
+  if (environments[$winId$]) {
+    return;
+  }
 
-  const $window$ = env.$window$!;
+  const $window$: Window = constructInstance(
+    InterfaceType.Window,
+    PlatformInstanceId.window,
+    $winId$
+  ) as any;
+
+  const $document$: HTMLDocument = constructInstance(
+    InterfaceType.Document,
+    PlatformInstanceId.document,
+    $winId$,
+    NodeName.Document
+  ) as any;
+
+  environments[$winId$] = {
+    $winId$,
+    $parentWinId$,
+    $window$,
+    $location$: new Location($url$),
+    $document$,
+    $isTop$,
+    $run$: (content: string) => {
+      const fnArgs = [...globalNames, content];
+      const runInEnv = new Function(...fnArgs);
+      runInEnv.apply($window$, globalImplementations);
+    },
+  };
 
   const interfaces = webWorkerCtx.$interfaces$;
 
@@ -35,7 +66,7 @@ export const createEnvironment = (
 
   const winMembersTypeInfo = winInterface[2];
 
-  const $globals$ = Object.getOwnPropertyNames(Window.prototype)
+  const envGlobals = Object.getOwnPropertyNames(Window.prototype)
     .filter((m) => m !== 'constructor')
     .map(($memberName$) => {
       const $implementation$ = ($window$ as any)[$memberName$];
@@ -48,7 +79,7 @@ export const createEnvironment = (
     });
 
   const isValidGlobal = (globalName: string) =>
-    !(globalName in glbThis) && !$globals$.some((g) => g.$memberName$ === globalName);
+    !(globalName in self) && !envGlobals.some((g) => g.$memberName$ === globalName);
 
   $window$[TargetSetterKey] = TargetSetterType.SetToTarget;
 
@@ -74,7 +105,7 @@ export const createEnvironment = (
         $implementation$,
       };
 
-      $globals$.push(winGlobal);
+      envGlobals.push(winGlobal);
     }
   });
 
@@ -83,7 +114,7 @@ export const createEnvironment = (
     const $memberName$ = i[1];
     const $implementation$ = createGlobalConstructorProxy($winId$, $interfaceType$, $memberName$);
     if (isValidGlobal($memberName$)) {
-      $globals$.push({
+      envGlobals.push({
         $implementation$,
         $interfaceType$,
         $memberName$,
@@ -91,25 +122,21 @@ export const createEnvironment = (
     }
   });
 
-  const globalNames = $globals$.map((g) => g.$memberName$);
+  const globalNames = envGlobals.map((g) => g.$memberName$);
   const globalImplementations = globalNames.map(
-    ($memberName$) => $globals$.find((g) => g.$memberName$ === $memberName$)!.$implementation$
+    ($memberName$) => envGlobals.find((g) => g.$memberName$ === $memberName$)!.$implementation$
   );
 
-  $globals$.map((glb) => (($window$ as any)[glb.$memberName$] = glb.$implementation$));
+  envGlobals.map((glb) => (($window$ as any)[glb.$memberName$] = glb.$implementation$));
 
-  htmlCstrNames.map((htmlCstrName) => (($window$ as any)[htmlCstrName] = glbThis[htmlCstrName]));
-
-  env.$run$ = (content: string) => {
-    const fnArgs = [...globalNames, content];
-    const runInEnv = new Function(...fnArgs);
-    runInEnv.apply($window$, globalImplementations);
-  };
+  htmlCstrNames.map(
+    (htmlCstrName) => (($window$ as any)[htmlCstrName] = (self as any)[htmlCstrName])
+  );
 
   $window$[TargetSetterKey] = TargetSetterType.SetToMainProxy;
 
   if (debug) {
-    const winType = env.$isTop$ ? 'top' : 'iframe';
+    const winType = $isTop$ ? 'top' : 'iframe';
     logWorker(
       `Created ${winType} window ${normalizedWinId($winId$)} environment (${$winId$})`,
       $winId$
@@ -121,26 +148,6 @@ export const createEnvironment = (
 
 export const getEnv = (instance: { [WinIdKey]: number }) => environments[instance[WinIdKey]];
 
-export const getEnvWindow = (instance: { [WinIdKey]: number }) => getEnv(instance).$window$!;
+export const getEnvWindow = (instance: { [WinIdKey]: number }) => getEnv(instance).$window$;
 
 export const getEnvDocument = (instance: { [WinIdKey]: number }) => getEnvWindow(instance).document;
-
-export const setEnv = ($winId$: number, $parentWinId$: number, url: string, $isTop$?: number) => {
-  const env = (environments[$winId$] = environments[$winId$] || {
-    $winId$,
-    $parentWinId$,
-    $isTop$,
-  });
-
-  if (env.$location$) {
-    env.$location$.href = url;
-  } else {
-    env.$location$ = new Location(url);
-  }
-
-  env.$window$ =
-    env.$window$ ||
-    (constructInstance(InterfaceType.Window, PlatformInstanceId.window, $winId$) as any);
-
-  return env;
-};

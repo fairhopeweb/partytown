@@ -26,7 +26,7 @@ const receiveMessageFromSandboxToWorker = (ev: MessageEvent<MessageFromSandboxTo
       console.error('RunStateHandlers');
       // runStateHandlers(msgData1 as number, msgData2 as any);
     } else if (msgType === WorkerMessageType.InitializeEnvironment) {
-      createEnvironment(self, msg[1]);
+      createEnvironment(msg[1]);
     } else if (msgType === WorkerMessageType.InitializedEnvironment) {
       environments[msg[1]].$isInitialized$ = 1;
 
