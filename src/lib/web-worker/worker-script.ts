@@ -11,9 +11,8 @@ export class HTMLScriptElement extends HTMLSrcElement {
   get innerHTML() {
     return getInstanceStateValue<string>(this, StateProp.innerHTML) || '';
   }
-  set innerHTML(content: string) {
-    setInstanceStateValue(this, StateProp.innerHTML, content);
-    getEnv(this).$run$!(content);
+  set innerHTML(scriptContent: string) {
+    setInstanceStateValue(this, StateProp.innerHTML, scriptContent);
   }
 
   get innerText() {

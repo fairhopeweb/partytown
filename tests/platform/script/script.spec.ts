@@ -36,4 +36,8 @@ test('script', async ({ page }) => {
   await page.waitForSelector('.testInnerHTMLGlobalVar');
   const testInnerHTMLGlobalVar = page.locator('#testInnerHTMLGlobalVar');
   await expect(testInnerHTMLGlobalVar).toHaveText('111');
+
+  await page.waitForSelector('.testInnerHTMLError');
+  const testInnerHTMLError = page.locator('#testInnerHTMLError');
+  await expect(testInnerHTMLError).toHaveText('gahh');
 });

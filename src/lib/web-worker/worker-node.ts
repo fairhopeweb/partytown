@@ -2,7 +2,7 @@ import { applyBeforeSyncSetters, callMethod } from './worker-proxy';
 import { EMPTY_ARRAY } from '../utils';
 import { getEnvDocument } from './worker-environment';
 import type { HTMLDocument } from './worker-document';
-import { insertIframe } from './worker-exec';
+import { insertIframe, insertScriptContent } from './worker-exec';
 import { InterfaceTypeKey, NodeNameKey, webWorkerCtx, WinIdKey } from './worker-constants';
 import { NodeName, WorkerMessageType } from '../types';
 import { WorkerProxy } from './worker-proxy-constructor';
@@ -22,14 +22,24 @@ export class Node extends WorkerProxy {
   set href(_: any) {}
 
   insertBefore(newNode: Node, referenceNode: Node | null) {
+    const winId = newNode[WinIdKey];
+    const nodeName = newNode[NodeNameKey];
+    const isScript = nodeName === NodeName.Script;
+    const isIFrame = nodeName === NodeName.IFrame;
+
+    if (isScript) {
+      insertScriptContent(newNode);
+    }
+
     applyBeforeSyncSetters(newNode);
 
     newNode = callMethod(this, ['insertBefore'], [newNode, referenceNode], EMPTY_ARRAY);
 
-    if (newNode[NodeNameKey] === NodeName.IFrame) {
+    if (isIFrame) {
       insertIframe(newNode);
-    } else if (newNode[NodeNameKey] === NodeName.Script) {
-      webWorkerCtx.$postMessage$([WorkerMessageType.InitializeNextScript, this[WinIdKey]]);
+    }
+    if (isScript) {
+      webWorkerCtx.$postMessage$([WorkerMessageType.InitializeNextScript, winId]);
     }
 
     return newNode;

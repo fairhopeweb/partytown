@@ -1,5 +1,11 @@
-import { debug, logWorker, nextTick, SCRIPT_TYPE } from '../utils';
-import { environments, InstanceIdKey, webWorkerCtx } from './worker-constants';
+import { debug, logWorker, nextTick, SCRIPT_TYPE, SCRIPT_TYPE_EXEC } from '../utils';
+import {
+  environments,
+  ImmediateSettersKey,
+  InstanceIdKey,
+  webWorkerCtx,
+  WinIdKey,
+} from './worker-constants';
 import {
   EventHandler,
   InitializeScriptData,
@@ -11,6 +17,7 @@ import { getEnv } from './worker-environment';
 import { getInstanceStateValue, getStateValue, setStateValue } from './worker-state';
 import type { HTMLElement } from './worker-element';
 import type { Node } from './worker-node';
+import { serializeForMain } from './worker-serialization';
 
 export const initNextScriptsInWebWorker = async (initScript: InitializeScriptData) => {
   let winId = initScript.$winId$;
@@ -49,26 +56,7 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
       runStateLoadHandlers(instanceId, StateProp.errorHandlers);
     }
   } else if (scriptContent) {
-    try {
-      if (debug && webWorkerCtx.$config$.logScriptExecution) {
-        logWorker(
-          `Execute script[data-ptid="${instanceId}"] ${scriptContent
-            .split('\n')
-            .map((l) => l.trim())
-            .join(' ')
-            .trim()
-            .substr(0, 50)}...`,
-          winId
-        );
-      }
-
-      env.$currentScriptId$ = instanceId;
-      env.$currentScriptUrl$ = '';
-      env.$run$!(scriptContent);
-    } catch (contentError: any) {
-      console.error(scriptContent, contentError);
-      errorMsg = String(contentError.stack || contentError) + '';
-    }
+    errorMsg = runScriptContent(env, instanceId, scriptContent, winId);
   }
 
   env.$currentScriptId$ = -1;
@@ -80,6 +68,40 @@ export const initNextScriptsInWebWorker = async (initScript: InitializeScriptDat
     instanceId,
     errorMsg,
   ]);
+};
+
+export const runScriptContent = (
+  env: WebWorkerEnvironment,
+  instanceId: number,
+  scriptContent: string,
+  winId: number
+) => {
+  let errorMsg = '';
+  try {
+    if (debug && webWorkerCtx.$config$.logScriptExecution) {
+      logWorker(
+        `Execute script[data-ptid="${instanceId}"] ${scriptContent
+          .split('\n')
+          .map((l) => l.trim())
+          .join(' ')
+          .trim()
+          .substr(0, 50)}...`,
+        winId
+      );
+    }
+
+    env.$currentScriptId$ = instanceId;
+    env.$currentScriptUrl$ = '';
+    env.$run$!(scriptContent);
+  } catch (contentError: any) {
+    console.error(scriptContent, contentError);
+    errorMsg = String(contentError.stack || contentError) + '';
+  }
+
+  env.$currentScriptId$ = -1;
+  env.$currentScriptUrl$ = '';
+
+  return errorMsg;
 };
 
 const runStateLoadHandlers = (instanceId: number, type: StateProp, handlers?: EventHandler[]) => {
@@ -117,6 +139,27 @@ export const insertIframe = (iframe: Node) => {
   };
 
   callback();
+};
+
+export const insertScriptContent = (script: Node) => {
+  const scriptContent = getInstanceStateValue<string>(script, StateProp.innerHTML);
+
+  if (scriptContent) {
+    const winId = script[WinIdKey];
+    const instanceId = script[InstanceIdKey];
+    const immediateSetters = script[ImmediateSettersKey];
+    const errorMsg = runScriptContent(getEnv(script), instanceId, scriptContent, winId);
+    const datasetType = errorMsg ? 'pterror' : 'ptid';
+    const datasetValue = errorMsg || instanceId;
+
+    if (immediateSetters) {
+      immediateSetters.push(
+        [['type'], serializeForMain(winId, instanceId, SCRIPT_TYPE + SCRIPT_TYPE_EXEC)],
+        [['dataset', datasetType], serializeForMain(winId, instanceId, datasetValue)],
+        [['innerHTML'], serializeForMain(winId, instanceId, scriptContent)]
+      );
+    }
+  }
 };
 
 const resolveToUrl = (env: WebWorkerEnvironment, url?: string) =>

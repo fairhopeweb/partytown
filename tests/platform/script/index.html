@@ -65,7 +65,7 @@
               elm.className = 'testJSONP';
             };
             script.dataset.testjsonp = true;
-            script.src = './jsonp-a.js';
+            script.src = './whatever/plz/resolve/../../../jsonp-a.js';
             document.head.appendChild(script);
           })();
         </script>
@@ -214,6 +214,25 @@
             document.head.appendChild(script);
             elm.textContent = someGlobalVar;
             elm.className = 'testInnerHTMLGlobalVar';
+          })();
+        </script>
+      </li>
+
+      <li>
+        <strong>set innerHTML, error</strong>
+        <code id="testInnerHTMLError"></code>
+        <script type="text/partytown">
+          (function () {
+            const elm = document.getElementById('testInnerHTMLError');
+            const script = document.createElement('script');
+            script.id = 'pt-error';
+            script.innerText = `
+              throw 'gahh';
+            `;
+            document.head.appendChild(script);
+            const scriptElm = document.getElementById('pt-error');
+            elm.textContent = scriptElm.getAttribute('data-pterror')
+            elm.className = 'testInnerHTMLError';
           })();
         </script>
       </li>

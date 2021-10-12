@@ -1,10 +1,17 @@
-import { debug, logMain, normalizedWinId, PT_INITIALIZED_EVENT, SCRIPT_TYPE } from '../utils';
+import {
+  debug,
+  logMain,
+  normalizedWinId,
+  PT_INITIALIZED_EVENT,
+  SCRIPT_TYPE,
+  SCRIPT_TYPE_EXEC,
+} from '../utils';
 import { getAndSetInstanceId } from './main-instances';
 import {
-  MainWindowContext,
   InitializeScriptData,
-  WorkerMessageType,
+  MainWindowContext,
   PartytownWebWorker,
+  WorkerMessageType,
 } from '../types';
 import { mainForwardTrigger } from './main-forward-trigger';
 
@@ -68,7 +75,7 @@ export const initializedWorkerScript = (
     if (errorMsg) {
       script.dataset.pterror = errorMsg;
     } else {
-      script.type += '-init';
+      script.type += SCRIPT_TYPE_EXEC;
     }
   }
 

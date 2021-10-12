@@ -288,3 +288,5 @@ export const randomId = () => Math.round(Math.random() * 9999999999 + PlatformIn
  * @public
  */
 export const SCRIPT_TYPE = `text/partytown`;
+
+export const SCRIPT_TYPE_EXEC = `-x`;
