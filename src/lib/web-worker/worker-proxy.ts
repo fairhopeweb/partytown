@@ -14,9 +14,10 @@ import {
   logWorkerGetter,
   logWorkerSetter,
   randomId,
+  defineConstructorName,
 } from '../utils';
 import { deserializeFromMain, serializeForMain } from './worker-serialization';
-import { getEnvDocument } from './worker-environment';
+import { getEnv } from './worker-environment';
 import { getInstanceStateValue, setInstanceStateValue, setStateValue } from './worker-state';
 import {
   ImmediateSettersKey,
@@ -165,9 +166,7 @@ export const createGlobalConstructorProxy = (
     }
   };
 
-  return Object.defineProperty(GlobalCstr, 'name', {
-    value: cstrName,
-  });
+  return defineConstructorName(GlobalCstr, cstrName);
 };
 
 export const applyBeforeSyncSetters = (instance: WorkerProxy) => {
@@ -177,7 +176,7 @@ export const applyBeforeSyncSetters = (instance: WorkerProxy) => {
       instance[ImmediateSettersKey] = undefined;
 
       callMethod(
-        getEnvDocument(instance),
+        getEnv(instance).$document$,
         ['createElement'],
         [instance[NodeNameKey]],
         beforeSyncValues,

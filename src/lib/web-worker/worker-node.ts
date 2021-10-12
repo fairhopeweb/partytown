@@ -1,6 +1,6 @@
 import { applyBeforeSyncSetters, callMethod } from './worker-proxy';
 import { EMPTY_ARRAY } from '../utils';
-import { getEnvDocument } from './worker-environment';
+import { getEnv } from './worker-environment';
 import type { HTMLDocument } from './worker-document';
 import { insertIframe, insertScriptContent } from './worker-exec';
 import { InterfaceTypeKey, NodeNameKey, webWorkerCtx, WinIdKey } from './worker-constants';
@@ -13,7 +13,7 @@ export class Node extends WorkerProxy {
   }
 
   get ownerDocument(): HTMLDocument {
-    return getEnvDocument(this);
+    return getEnv(this).$document$;
   }
 
   get href() {

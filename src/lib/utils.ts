@@ -267,6 +267,11 @@ export const isValidMemberName = (memberName: string) => {
   }
 };
 
+export const defineConstructorName = (Cstr: any, value: string) =>
+  Object.defineProperty(Cstr, 'name', {
+    value,
+  });
+
 export const nextTick = (cb: Function, ms?: number) => setTimeout(cb, ms);
 
 export const EMPTY_ARRAY = [];

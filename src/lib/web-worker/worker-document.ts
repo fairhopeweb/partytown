@@ -1,21 +1,16 @@
 import { callMethod } from './worker-proxy';
 import { constructInstance, getElementConstructor } from './worker-constructors';
-import { createEnvironment, getEnv, getEnvDocument, getEnvWindow } from './worker-environment';
+import { createEnvironment, getEnv, getEnvWindow } from './worker-environment';
 import { getPartytownScript } from './worker-exec';
 import { HTMLElement } from './worker-element';
-import { ImmediateSetter, InterfaceType, NodeName, PlatformInstanceId } from '../types';
+import { ImmediateSetter, InterfaceType, NodeName } from '../types';
 import { ImmediateSettersKey, WinIdKey } from './worker-constants';
-import { SCRIPT_TYPE, randomId, toUpper, debug, logWorkerGetter, logWorkerSetter } from '../utils';
+import { SCRIPT_TYPE, randomId, toUpper, defineConstructorName } from '../utils';
 import { serializeForMain } from './worker-serialization';
 
 export class HTMLDocument extends HTMLElement {
   get body() {
-    return constructInstance(
-      InterfaceType.Element,
-      PlatformInstanceId.body,
-      this[WinIdKey],
-      NodeName.Body
-    );
+    return getEnv(this).$body$;
   }
 
   createElement(tagName: string) {
@@ -28,11 +23,11 @@ export class HTMLDocument extends HTMLElement {
     const immediateSetter: ImmediateSetter[] = (elm[ImmediateSettersKey] = []);
 
     if (tagName === NodeName.IFrame) {
-      immediateSetter.push([['srcdoc'], serializeForMain(winId, instanceId, getPartytownScript())]);
-
       // an iframe element's instanceId is the same as its contentWindow's winId
       // and the contentWindow's parentWinId is the iframe element's winId
       createEnvironment({ $winId$: instanceId, $parentWinId$: winId, $url$: 'about:blank' });
+
+      immediateSetter.push([['srcdoc'], serializeForMain(winId, instanceId, getPartytownScript())]);
     } else if (tagName === NodeName.Script) {
       immediateSetter.push([['type'], serializeForMain(winId, instanceId, SCRIPT_TYPE)]);
     }
@@ -58,12 +53,7 @@ export class HTMLDocument extends HTMLElement {
   }
 
   get documentElement() {
-    return constructInstance(
-      InterfaceType.Element,
-      PlatformInstanceId.documentElement,
-      this[WinIdKey],
-      NodeName.DocumentElement
-    );
+    return getEnv(this).$documentElement$;
   }
 
   getElementsByTagName(tagName: string) {
@@ -87,12 +77,7 @@ export class HTMLDocument extends HTMLElement {
   }
 
   get head() {
-    return constructInstance(
-      InterfaceType.Element,
-      PlatformInstanceId.head,
-      this[WinIdKey],
-      NodeName.Head
-    );
+    return getEnv(this).$head$;
   }
 
   get implementation() {
@@ -102,16 +87,10 @@ export class HTMLDocument extends HTMLElement {
   }
 
   get location() {
-    if (debug) {
-      logWorkerGetter(this, ['location'], getEnvWindow(this).location);
-    }
-    return getEnvWindow(this).location;
+    return getEnv(this).$location$;
   }
   set location(url: any) {
-    if (debug) {
-      logWorkerSetter(this, ['location'], url);
-    }
-    getEnvWindow(this).location.href = url + '';
+    getEnv(this).$location$.href = url + '';
   }
 
   get parentNode() {
@@ -123,16 +102,25 @@ export class HTMLDocument extends HTMLElement {
   }
 
   get readyState() {
-    logWorkerGetter(this, ['readyState'], 'complete');
     return 'complete';
   }
 }
 
-export class WorkerDocumentElementChild extends HTMLElement {
-  get parentElement() {
-    return this.parentNode;
-  }
-  get parentNode() {
-    return getEnvDocument(this).documentElement;
-  }
-}
+export const constructDocumentElementChild = (
+  winId: number,
+  instanceId: number,
+  titleCaseNodeName: 'Body' | 'Head'
+) => {
+  const HtmlCstr: typeof HTMLElement = defineConstructorName(
+    class extends HTMLElement {
+      get parentElement() {
+        return this.parentNode;
+      }
+      get parentNode() {
+        return getEnv(this).$documentElement$;
+      }
+    },
+    `HTML${titleCaseNodeName}Element`
+  );
+  return new HtmlCstr(InterfaceType.Element, instanceId, winId, toUpper(titleCaseNodeName));
+};

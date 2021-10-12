@@ -1,5 +1,6 @@
 import { callMethod, createGlobalConstructorProxy, proxy } from './worker-proxy';
 import { constructInstance } from './worker-constructors';
+import { constructDocumentElementChild, HTMLDocument } from './worker-document';
 import { debug, logWorker, normalizedWinId } from '../utils';
 import {
   environments,
@@ -8,7 +9,7 @@ import {
   webWorkerCtx,
   WinIdKey,
 } from './worker-constants';
-import type { HTMLDocument } from './worker-document';
+import type { HTMLElement } from './worker-element';
 import {
   InitializeEnvironmentData,
   InterfaceType,
@@ -28,28 +29,51 @@ export const createEnvironment = ({
   $url$,
 }: InitializeEnvironmentData) => {
   if (environments[$winId$]) {
+    environments[$winId$].$location$.href = $url$;
     return;
   }
 
-  const $window$: Window = constructInstance(
+  const $window$ = constructInstance(
     InterfaceType.Window,
     PlatformInstanceId.window,
     $winId$
-  ) as any;
+  ) as Window;
 
-  const $document$: HTMLDocument = constructInstance(
+  const $document$ = constructInstance(
     InterfaceType.Document,
     PlatformInstanceId.document,
     $winId$,
     NodeName.Document
-  ) as any;
+  ) as HTMLDocument;
+
+  const $documentElement$ = constructInstance(
+    InterfaceType.Element,
+    PlatformInstanceId.documentElement,
+    $winId$,
+    NodeName.DocumentElement
+  ) as HTMLElement;
+
+  const $head$ = constructDocumentElementChild(
+    $winId$,
+    PlatformInstanceId.head,
+    'Head'
+  ) as HTMLElement;
+
+  const $body$ = constructDocumentElementChild(
+    $winId$,
+    PlatformInstanceId.body,
+    'Body'
+  ) as HTMLElement;
 
   environments[$winId$] = {
     $winId$,
     $parentWinId$,
     $window$,
-    $location$: new Location($url$),
     $document$,
+    $documentElement$,
+    $head$,
+    $body$,
+    $location$: new Location($url$),
     $isTop$,
     $run$: (content: string) => {
       const fnArgs = [...globalNames, content];
@@ -149,5 +173,3 @@ export const createEnvironment = ({
 export const getEnv = (instance: { [WinIdKey]: number }) => environments[instance[WinIdKey]];
 
 export const getEnvWindow = (instance: { [WinIdKey]: number }) => getEnv(instance).$window$;
-
-export const getEnvDocument = (instance: { [WinIdKey]: number }) => getEnvWindow(instance).document;
