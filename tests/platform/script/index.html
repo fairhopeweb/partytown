@@ -149,41 +149,41 @@
       </li>
 
       <li>
-        <strong>set innerHTML, window.someGlobalVar</strong>
+        <strong>set innerHTML, window.someWindowVar</strong>
         <code id="testInnerHTML"></code>
         <script type="text/partytown">
           (function () {
             const elm = document.getElementById('testInnerHTML');
             const script = document.createElement('script');
             script.innerHTML = `
-              window.someGlobalVar = 88;
+              window.someWindowVar = 88;
             `;
             document.head.appendChild(script);
-            elm.textContent = window.someGlobalVar;
+            elm.textContent = window.someWindowVar;
             elm.className = 'testInnerHTML';
           })();
         </script>
       </li>
 
       <li>
-        <strong>set textContent, window.someGlobalVar</strong>
+        <strong>set textContent, window.someWindowVar</strong>
         <code id="testTextContent"></code>
         <script type="text/partytown">
           (function () {
             const elm = document.getElementById('testTextContent');
             const script = document.createElement('script');
             script.textContent = `
-              window.someGlobalVar = 99;
+              window.someWindowVar = 99;
             `;
             document.head.appendChild(script);
-            elm.textContent = window.someGlobalVar;
+            elm.textContent = window.someWindowVar;
             elm.className = 'testTextContent';
           })();
         </script>
       </li>
 
       <li>
-        <strong>set innerText, window.someGlobalVar</strong>
+        <strong>set innerText, window.someWindowVar</strong>
         <code some-attr="101" id="testInnerText"></code>
         <script type="text/partytown">
           (function () {
@@ -191,11 +191,29 @@
             const script = document.createElement('script');
             script.innerText = `
               const elm = document.getElementById('testInnerText');
-              window.someGlobalVar = elm.getAttribute('some-attr');
+              window.someWindowVar = elm.getAttribute('some-attr');
             `;
             document.head.appendChild(script);
-            elm.textContent = window.someGlobalVar;
+            elm.textContent = window.someWindowVar;
             elm.className = 'testInnerText';
+          })();
+        </script>
+      </li>
+
+      <li>
+        <strong>set innerHTML, someGlobalVar</strong>
+        <code some-attr="111" id="testInnerHTMLGlobalVar"></code>
+        <script type="text/partytown">
+          (function () {
+            const elm = document.getElementById('testInnerHTMLGlobalVar');
+            const script = document.createElement('script');
+            script.innerText = `
+              const elm = document.getElementById('testInnerHTMLGlobalVar');
+              someGlobalVar = elm.getAttribute('some-attr');
+            `;
+            document.head.appendChild(script);
+            elm.textContent = someGlobalVar;
+            elm.className = 'testInnerHTMLGlobalVar';
           })();
         </script>
       </li>
